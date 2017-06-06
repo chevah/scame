@@ -13,7 +13,7 @@ from scame.formatcheck import (
     IS_PY3,
 )
 from scame.tests import CheckerTestCase
-from scame.tests.test_text import TestAnyTextMixin
+from scame.tests.test_text import AnyTextMixin
 
 
 good_css = """\
@@ -98,8 +98,10 @@ class TestCSS(CheckerTestCase):
         self.test_invalid_value()
 
 
-class TestText(CheckerTestCase, TestAnyTextMixin):
-    """Verify text integration."""
+class TestText(CheckerTestCase, AnyTextMixin):
+    """
+    Verify text integration.
+    """
 
     def create_and_check(self, file_name, text, options=None):
         """Used by the TestAnyTextMixin tests."""

@@ -7,18 +7,18 @@ from __future__ import (
     unicode_literals,
     )
 
-from scame.formatcheck import (
-    AnyTextChecker,
-    get_option_parser,
-    )
+from scame.__main__ import parse_command_line
+from scame.formatcheck import AnyTextChecker
 from scame.tests import Bunch, CheckerTestCase
 
 
-class TestAnyTextMixin:
-    """A mixin that provides common text tests."""
+class AnyTextMixin(object):
+    """
+    A mixin that provides common text tests.
+    """
 
     def create_and_check(self, file_name, text, options=None):
-        raise NotImplemented
+        raise NotImplementedError()
 
     def test_without_conflicts(self):
         self.create_and_check('bogus', '<<<<<< look')
@@ -98,7 +98,7 @@ class TestAnyTextMixin:
             )
 
 
-class TestText(CheckerTestCase, TestAnyTextMixin):
+class TestText(CheckerTestCase, AnyTextMixin):
     """Verify text integration."""
 
     def create_and_check(self, file_name, text, options=None):
@@ -124,8 +124,7 @@ class TestText(CheckerTestCase, TestAnyTextMixin):
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 5
-        parser = get_option_parser()
-        (options, sources) = parser.parse_args(['-m', '49'])
+        (options, sources) = parse_command_line(['-m', '49'])
         self.create_and_check('bogus', long_line, options=options)
         self.assertEqual(
             [(1, 'Line exceeds 49 characters.')],

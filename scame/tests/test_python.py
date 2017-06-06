@@ -13,7 +13,7 @@ from scame.formatcheck import (
     PocketLintOptions, PythonChecker,
     )
 from scame.tests import CheckerTestCase
-from scame.tests.test_text import TestAnyTextMixin
+from scame.tests.test_text import AnyTextMixin
 
 
 good_python = """\
@@ -176,19 +176,21 @@ class TestPyflakes(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
 
 
-class TestPEP8(CheckerTestCase):
-    """Verify PEP8 integration."""
+class TestPyCodeStyle(CheckerTestCase):
+    """
+    Verify pycodestyle integration.
+    """
 
     def test_code_without_issues(self):
         checker = PythonChecker(
             'file/path', good_python, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual([], self.reporter.messages)
 
     def test_bad_syntax(self):
         checker = PythonChecker(
             'file/path', ugly_style_python, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
@@ -196,22 +198,22 @@ class TestPEP8(CheckerTestCase):
     def test_code_with_IndentationError(self):
         checker = PythonChecker(
             'file/path', bad_indentation_python, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         expected = [(
             4,
             'E901 IndentationError: '
             'unindent does not match any outer indentation level')]
         self.assertEqual(expected, self.reporter.messages)
-        checker.check_pep8()
+        checker.check_pycodestyle()
 
     def test_code_closing_bracket(self):
         checker = PythonChecker(
             'file/path', hanging_style_python, self.reporter)
-        checker.options.pep8['hang_closing'] = True
-        checker.check_pep8()
+        checker.options.pycodestyle['hang_closing'] = True
+        checker.check_pycodestyle()
         self.assertEqual([], self.reporter.messages)
-        checker.options.pep8['hang_closing'] = False
-        checker.check_pep8()
+        checker.options.pycodestyle['hang_closing'] = False
+        checker.check_pycodestyle()
         self.assertEqual(
             [(4, "E123 closing bracket does not match indentation of "
                  "opening bracket's line")],
@@ -220,7 +222,7 @@ class TestPEP8(CheckerTestCase):
     def test_code_with_issues(self):
         checker = PythonChecker(
             'file/path', ugly_style_python, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
@@ -228,19 +230,19 @@ class TestPEP8(CheckerTestCase):
     def test_code_with_comments(self):
         checker = PythonChecker(
             'file/path', ugly_style_lines_python, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_good(self):
         long_line = '1234 56189' * 7 + '12345678' + '\n'
         checker = PythonChecker('file/path', long_line, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
         checker = PythonChecker('file/path', long_line, self.reporter)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual(
             [(1, 'E501 line too long (80 > 79 characters)')],
             self.reporter.messages)
@@ -251,29 +253,29 @@ class TestPEP8(CheckerTestCase):
         options.max_line_length = 60
         checker = PythonChecker(
             'file/path', long_line, self.reporter, options)
-        checker.check_pep8()
+        checker.check_pycodestyle()
         self.assertEqual(
             [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
 
 
-class TestText(CheckerTestCase, TestAnyTextMixin):
+class TestText(CheckerTestCase, AnyTextMixin):
     """Verify text integration."""
 
     def test_with_tabs(self):
-        # pep8 checks this.
+        # pycodestyle checks this.
         pass
 
     def test_trailing_whitespace(self):
-        # pep8 checks this.
+        # pycodestyle checks this.
         pass
 
     def test_long_length(self):
-        # pep8 checks this.
+        # pycodestyle checks this.
         pass
 
     def create_and_check(self, file_name, text, options=None):
-        """Used by the TestAnyTextMixin tests."""
+        """Used by the AnyTextMixin tests."""
         checker = PythonChecker(file_name, text, self.reporter, options)
         checker.check_text()
 

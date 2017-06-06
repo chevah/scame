@@ -9,10 +9,10 @@ from __future__ import (
 
 from scame.formatcheck import SQLChecker
 from scame.tests import CheckerTestCase
-from scame.tests.test_text import TestAnyTextMixin
+from scame.tests.test_text import AnyTextMixin
 
 
-class TestSQL(CheckerTestCase, TestAnyTextMixin):
+class TestSQL(CheckerTestCase, AnyTextMixin):
     """Verify text integration."""
 
     def create_and_check(self, file_name, text, options=None):

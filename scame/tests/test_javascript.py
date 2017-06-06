@@ -15,7 +15,7 @@ from scame.formatcheck import (
     JS
 )
 from scame.tests import CheckerTestCase
-from scame.tests.test_text import TestAnyTextMixin
+from scame.tests.test_text import AnyTextMixin
 
 try:
     import closure_linter
@@ -114,7 +114,7 @@ class TestJavascript(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
 
 
-class TestText(CheckerTestCase, TestAnyTextMixin):
+class TestText(CheckerTestCase, AnyTextMixin):
     """Verify text integration."""
 
     def create_and_check(self, file_name, text, options=None):

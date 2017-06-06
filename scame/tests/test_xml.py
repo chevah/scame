@@ -9,7 +9,7 @@ from __future__ import (
 
 from scame.formatcheck import XMLChecker
 from scame.tests import CheckerTestCase
-from scame.tests.test_text import TestAnyTextMixin
+from scame.tests.test_text import AnyTextMixin
 
 
 good_markup = """\
@@ -107,7 +107,7 @@ class TestXML(CheckerTestCase):
         self.assertEqual([], self.reporter.messages)
 
 
-class TestText(CheckerTestCase, TestAnyTextMixin):
+class TestText(CheckerTestCase, AnyTextMixin):
     """Verify text integration."""
 
     def create_and_check(self, file_name, text, options=None):
