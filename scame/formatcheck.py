@@ -175,6 +175,7 @@ class Language(object):
     mimetypes.add_type('text/plain', '.bat')
     mimetypes.add_type('text/css', '.css')
     mimetypes.add_type('text/html', '.html')
+    mimetypes.add_type('image/x-icon', '.ico')
     mimetypes.add_type('text/plain', '.ini')
     mimetypes.add_type('application/javascript', '.js')
     mimetypes.add_type('application/json', '.json')
@@ -187,6 +188,7 @@ class Language(object):
     mimetypes.add_type('text/x-twisted-application', '.tac')
     mimetypes.add_type('text/plain', '.txt')
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
+
 
     # Sorted after content type.
     mime_type_language = {
@@ -234,9 +236,9 @@ class Language(object):
         return Language.get_language(file_path) is not None
 
 
-class PocketLintOptions(object):
+class ScameOptions(object):
     """
-    Default options used by pocketlint.
+    Default options used by `scame`.
 
     The configuration options are accessed via a `get` method with takes a
     path as argument so you can have different options based on different
@@ -251,6 +253,13 @@ class PocketLintOptions(object):
         self.do_format = False
         self.is_interactive = False
         self.regex_line = []
+
+        self.scope = {
+            # Paths to be included in the report.
+            'include': [],
+            # List of regex for paths to be excluded.
+            'exclude': [],
+            }
 
         self.pyflakes = {
             'enabled': True,
@@ -290,7 +299,7 @@ class PocketLintOptions(object):
             # Removed when passed to pylint.
             'enabled': False,
             # --rcfile=<file>
-            'rcfile': 'test_pylint.rc',
+            'rcfile': None,
             # --py3k
             'py3k': False,
             # -e <msg ids>, --enable=<msg ids>
@@ -338,7 +347,7 @@ class BaseChecker(object):
         self.set_reporter(reporter=reporter)
 
         if not options:
-            options = PocketLintOptions()
+            options = ScameOptions()
         self.options = options
 
     def set_reporter(self, reporter=None):

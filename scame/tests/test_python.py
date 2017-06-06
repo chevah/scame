@@ -9,9 +9,7 @@ from __future__ import (
 
 from tempfile import NamedTemporaryFile
 
-from scame.formatcheck import (
-    PocketLintOptions, PythonChecker,
-    )
+from scame.formatcheck import ScameOptions, PythonChecker
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
@@ -249,7 +247,7 @@ class TestPyCodeStyle(CheckerTestCase):
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 7 + '\n'
-        options = PocketLintOptions()
+        options = ScameOptions()
         options.max_line_length = 60
         checker = PythonChecker(
             'file/path', long_line, self.reporter, options)

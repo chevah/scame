@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from optparse import OptionParser
 
@@ -6,14 +7,14 @@ from scame.formatcheck import (
     DEFAULT_MAX_LENGTH,
     Language,
     Reporter,
-    PocketLintOptions,
+    ScameOptions,
     UniversalChecker,
     )
 
 
 def parse_command_line(args):
     """
-    Return a tuple with (options, source) for the command line request.
+    Return the `options` based on the command line arguments.
     """
     usage = "usage: %prog [options] file1 file2"
     parser = OptionParser(usage=usage)
@@ -48,27 +49,40 @@ def parse_command_line(args):
     (command_options, sources) = parser.parse_args(args=args)
 
     # Create options based on parsed command line.
-    options = PocketLintOptions()
+    options = ScameOptions()
     options.verbose = command_options.verbose
     options.do_format = command_options.do_format
     options.is_interactive = command_options.is_interactive
     options.max_line_length = command_options.max_line_length
     options.mccabe['max_complexity'] = command_options.max_complexity
     options.pycodestyle['hang_closing'] = command_options.hang_closing
+    options.scope['include'] = sources
 
-    return (options, sources)
+    return options
 
 
-def _get_all_files(dir_path):
+def _get_all_files(options, dir_path):
     """
     Generated all the files in the dir_path tree (recursive),
     """
+    regex_exclude = [
+        re.compile(expression) for expression in options.scope['exclude']]
+
+    def is_excepted_file(file_name):
+        for expresion in regex_exclude:
+            if expresion.match(file_name):
+                return True
+        return False
+
     for root, _, filenames in os.walk(dir_path):
         for name in filenames:
-            yield os.path.join(root, name)
+            target = os.path.join(root, name)
+            if is_excepted_file(target):
+                continue
+            yield target
 
 
-def check_sources(sources, options, reporter=None):
+def check_sources(options, reporter=None):
     """
     Run checker on all the sources using `options` and sending results to
     `reporter`.
@@ -77,11 +91,11 @@ def check_sources(sources, options, reporter=None):
         reporter = Reporter(Reporter.CONSOLE)
     reporter.call_count = 0
 
-    for source in sources:
+    for source in options.scope['include']:
         file_path = os.path.normpath(source)
 
         if os.path.isdir(source):
-            paths = _get_all_files(file_path)
+            paths = _get_all_files(options, file_path)
         else:
             paths = [file_path]
 
@@ -108,9 +122,9 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    (options, sources) = parse_command_line(args=args)
+    options = parse_command_line(args=args)
 
-    if len(sources) == 0:
+    if len(options.scope['include']) == 0:
         sys.stderr.write("Expected file paths.\n")
         sys.exit(1)
 
@@ -118,7 +132,7 @@ def main(args=None):
 
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose
-    return check_sources(sources, options, reporter)
+    return check_sources(options, reporter)
 
 
 if __name__ == "__main__":
