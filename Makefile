@@ -23,9 +23,9 @@ check:
 	@echo "========= pycodestyle ============="
 	@build/bin/pycodestyle pocketlint/
 	@echo "========= bandit =================="
-	@build/bin/bandit -n 0 -f txt -r pocketlint/
+	#@build/bin/bandit -n 0 -f txt -r pocketlint/
 	@echo "========= pylint ============="
 	@build/bin/pylint pocketlint/
 
-test: lint
-	@build/bin/nosetest pocketlint/
+test: run
+	@build/bin/nosetests pocketlint/

@@ -66,14 +66,14 @@ AT_BLOCK_RULES = ['page', 'font-face']
 # {
 #     property:
 # }
-#IGNORED_MESSAGES = ['I013', 'I014']
+# IGNORED_MESSAGES = ['I013', 'I014']
 
 # If you want
 # selector,
 # selector {
 #     property:
 # }
-#IGNORED_MESSAGES = ['I005', 'I014']
+# IGNORED_MESSAGES = ['I005', 'I014']
 
 # If you want
 # selector,

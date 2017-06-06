@@ -10,7 +10,7 @@ from __future__ import (
 from tempfile import NamedTemporaryFile
 import unittest
 
-from pocketlint.formatcheck import(
+from pocketlint.formatcheck import (
     JavascriptChecker,
     JS
 )

@@ -7,7 +7,7 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import(
+from pocketlint.formatcheck import (
     CSSChecker,
     HAS_CSSUTILS,
     IS_PY3,
