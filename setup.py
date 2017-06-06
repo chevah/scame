@@ -5,68 +5,21 @@ from __future__ import (
     print_function,
 )
 
-import subprocess
 
-from distutils.core import (
-    Command,
-    setup,
-)
-from distutils.command.sdist import sdist
-import unittest
+from setuptools import find_packages, setup
 
-
-class SignedSDistCommand(sdist):
-    """Sign the source archive with a detached signature."""
-
-    description = "Sign the source archive after it is generated."
-
-    def run(self):
-        sdist.run(self)
-        gpg_args = [
-            'gpg', '--armor', '--sign', '--detach-sig', self.archive_files[0]]
-        gpg = subprocess.Popen(
-            gpg_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        gpg.communicate()
-
-
-class Check(Command):
-    description = "Run unit tests"
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def get_command_name(self):
-        pass
-
-    def run(self):
-        test_loader = unittest.defaultTestLoader
-        suite = unittest.TestSuite()
-        for test_module in test_loader.discover('pocketlint'):
-            suite.addTest(test_module)
-        unittest.TextTestRunner(verbosity=1).run(suite)
 
 setup(
-    name="pocketlint",
-    description="Pocket-lint a composite linter and style checker.",
-    version="1.4.4.c12",
-    maintainer="Curtis C. Hovey",
-    maintainer_email="sinzui.is@gmail.com",
-    url="https://launchpad.net/pocket-lint",
-    packages=[
-        'pocketlint', 'pocketlint/contrib'],
-    package_dir={
-        'pocketlint': 'pocketlint',
-        'pocketlint/contrib': 'pocketlint/contrib'},
-    package_data={
-        'pocketlint': ['jsreporter.js'],
-        'pocketlint/contrib': ['fulljslint.js']},
-    install_requires=['pyflakes>=0.7.3', 'pep8>=1.4.6'],
+    name="scame",
+    description="A composite linter and style checker.",
+    version="0.1.0",
+    maintainer="Adi Roiban",
+    maintainer_email="adi.roiban@chevah.com",
+    url="https://github.com/chevah/scame",
+    packages=find_packages('.'),
+    install_requires=[
+        'pyflakes>=1.5.0',
+        'pycodestyle>=2.3.1',
+        ],
     scripts=['scripts/pocketlint'],
-    cmdclass={
-        'check': Check,
-        'signed_sdist': SignedSDistCommand,
-    })
+    )

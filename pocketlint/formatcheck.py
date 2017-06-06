@@ -17,7 +17,6 @@ __all__ = [
 
 
 import _ast
-import ast
 try:
     from io import StringIO
 except ImportError:
@@ -27,7 +26,7 @@ except ImportError:
 
 try:
     from html.entities import entitydefs
-except:
+except ImportError:
     from htmlentitydefs import entitydefs  # pyflakes:noqa
 
 try:
@@ -69,11 +68,7 @@ from pocketlint.reporter import (
     css_report_handler,
     Reporter,
     )
-import pep8
-try:
-    from mccabe import McCabeChecker
-except ImportError:
-    McCabeChecker = None
+
 
 from pocketlint.contrib.cssccc import CSSCodingConventionChecker
 try:
@@ -151,7 +146,6 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
 
     def report(self, messageClass, *args, **kwargs):
         '''Filter some errors not used in our project.'''
-        line_no = args[0].lineno - 1
         self.messages.append(messageClass(self.file_path, *args, **kwargs))
 
     def NAME(self, node):
@@ -255,18 +249,30 @@ class Language(object):
 
 
 class PocketLintOptions(object):
-    """Default options used by pocketlint."""
+    """
+    Default options used by pocketlint.
+
+    The configuration options are accessed via a `get` method with takes a
+    path as argument so you can have different options based on different
+    paths.
+    """
 
     def __init__(self):
         self._max_line_length = 0
         self.verbose = False
-        self.max_complexity = -1
+
         # Docstring options.
         self.do_format = False
         self.is_interactive = False
         self.regex_line = []
-        self.jslint = {
+
+        self.pyflakes = {
             'enabled': True,
+            }
+
+        self.mccabe = {
+            'enabled': False,
+            'max_complexity': -1
             }
 
         self.closure_linter = {
@@ -277,13 +283,45 @@ class PocketLintOptions(object):
             'ignore': [110],
             }
 
-        # See pep8.StyleGuide for available options.
-        self.pep8 = {
-            'max_line_length': pep8.MAX_LINE_LENGTH,
+        # See pycodestyle.StyleGuide for available options.
+        self.pycodestyle = {
+            'enabled': False,  # Removed when passed to pycodestyle.
+            'max_line_length': 78,
             'hang_closing': False,
             }
 
+        # See bandit.cli.main profile usage.
+        # See bandit -h for the list of available tests.
+        self.bandit = {
+            'enabled': False,
+            # -t TESTS, --tests TESTS
+            'include': [],
+            # -s SKIPS, --skip SKIPS
+            'exclude': [],
+            }
+        # See pylint.lint.PyLinter.make_options
+        self.pylint = {
+            # Removed when passed to pylint.
+            'enabled': False,
+            # --rcfile=<file>
+            'rcfile': 'test_pylint.rc',
+            # --py3k
+            'py3k': False,
+            # -e <msg ids>, --enable=<msg ids>
+            # Ignored when rcfile is used.
+            'enable': [],
+            # -d <msg ids>, --disable=<msg ids>
+            # Ignored when rcfile is used.
+            'disable': [],
+            }
+
         self._plugins = set()
+
+    def get(self, option, path=None):
+        """
+        Return the value of "option" configuration.
+        """
+        return getattr(self, option)
 
     @property
     def max_line_length(self):
@@ -292,7 +330,7 @@ class PocketLintOptions(object):
     @max_line_length.setter
     def max_line_length(self, value):
         self._max_line_length = value
-        self.pep8['max_line_length'] = value - 1
+        self.pycodestyle['max_line_length'] = value - 1
 
     @property
     def plugins(self):
@@ -379,8 +417,9 @@ class BaseChecker(object):
     @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
-        if self.options.max_line_length:
-            return self.options.max_line_length
+        max_line_length = self.options.get('max_line_length', self.file_name)
+        if max_line_length:
+            return max_line_length
         else:
             return DEFAULT_MAX_LENGTH
 
@@ -430,7 +469,9 @@ class UniversalChecker(BaseChecker):
         self.check_plugins()
 
     def check_plugins(self):
-        """Checked code with registered plugins."""
+        """
+        Checked code with registered plugins.
+        """
         for plugin in self.options.plugins:
             plugin.check(
                 self.language,
@@ -490,11 +531,13 @@ class AnyTextMixin:
                 icon='info')
 
     def check_regex_line(self, line_no, line):
-        """Check that line does not match the regular expression.
+        """
+        Check that line does not match the regular expression.
 
         This can be used for custom checks.
         """
-        for pattern, message in self.options.regex_line:
+        regex_line = self.options.get('regex_line', self.file_name)
+        for pattern, message in regex_line:
             if re.search(pattern, line):
                 self.message(
                     line_no,
@@ -714,14 +757,12 @@ class CSSChecker(BaseChecker, AnyTextMixin):
         CSSCodingConventionChecker(self.text, logger=self.message).check()
 
 
-class PEP8Report(pep8.StandardReport):
-
-    def __init__(self, options, message_function):
-        super(PEP8Report, self).__init__(options)
-        self.message = message_function
-
-    def error(self, line_no, offset, message, check):
-        self.message(line_no, message, icon='info')
+class BanditPocketLintConfig(object):
+    """
+    A configuration with always triggers the default config.
+    """
+    def get_option(self, name):
+        return None
 
 
 class PythonChecker(BaseChecker, AnyTextMixin):
@@ -738,6 +779,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         self.encoding = 'ascii'
         # Last compiled tree.
         self._compiled_tree = None
+        # Placeholder config for bandit. Does nothing special for now.
+        self._bandit_config = BanditPocketLintConfig()
 
     def check(self):
         """Check the syntax of the python code."""
@@ -765,7 +808,9 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
         # pyflakes should be first as it will try to compile
         self.check_flakes()
-        self.check_pep8()
+        self.check_pycodestyle()
+        self.check_bandit()
+        self.check_pylint()
         self.check_complexity()
 
         # Reset the tree.
@@ -774,6 +819,10 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     def check_flakes(self):
         """Check compilation and syntax."""
         if not self._compiled_tree:
+            return
+
+        options = self.options.get('pyflakes', self.file_name)
+        if not options['enabled']:
             return
 
         warnings = PocketLintPyFlakesChecker(
@@ -787,43 +836,159 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                 category='pyflakes',
                 )
 
-    def check_pep8(self):
+    def check_pycodestyle(self):
         """Check style."""
-        style_options = pep8.StyleGuide(**self.options.pep8)
-        options = style_options.options
-        pep8_report = PEP8Report(options, self.message)
+        options = self.options.get('pycodestyle', self.file_name).copy()
+        if not options['enabled']:
+            return
+
+        import pycodestyle
+
+        class PyCodeStyleReport(pycodestyle.StandardReport):
+            """
+            Collect all errors via pocket-lint.
+            """
+            def __init__(self, options, message_function):
+                super(PyCodeStyleReport, self).__init__(options)
+                self.message = message_function
+
+            def error(self, line_no, offset, message, check):
+                self.message(line_no, message, icon='info')
+
+        # Enabled is only used internally.
+        del options['enabled']
+
+        style_options = pycodestyle.StyleGuide(**options)
+        pycodestyle_options = style_options.options
+        pycodestyle_report = PyCodeStyleReport(
+            pycodestyle_options, self.message)
         try:
-            pep8_checker = pep8.Checker(
+            pycodestyle_checker = pycodestyle.Checker(
                 filename=self.file_path,
                 lines=self.text.splitlines(True),
-                options=options,
-                report=pep8_report,
+                options=pycodestyle_options,
+                report=pycodestyle_report,
                 )
-            pep8_checker.check_all()
+            pycodestyle_checker.check_all()
         except TokenError as er:
             message, location = er.args
-            self.message(location[0], message, icon='error', category='pep8')
+            self.message(
+                location[0], message, icon='error', category='pycodestyle')
         except IndentationError as er:
             message, location = er.args
             message = "%s: %s" % (message, location[3].strip())
-            self.message(location[1], message, icon='error', category='pep8')
+            self.message(
+                location[1], message, icon='error', category='pycodestyle')
 
     def check_complexity(self):
+        """
+        Check using McCabe.
+        """
+        options = self.options.get('mccabe', self.file_name)
+        if not options['enabled']:
+            return
+
         if not self._compiled_tree:
             # We failed to compile the tree.
             return
 
-        if self.options.max_complexity < 0:
+        from mccabe import McCabeChecker
+
+        McCabeChecker.max_complexity = options['max_complexity']
+
+        result = McCabeChecker(self._compiled_tree, '-').run()
+        for lineno, offset, text, check in result:
+            self.message(lineno, text, icon='error', category='mccabe')
+
+    def check_bandit(self):
+        """
+        Check using bandit security linter.
+        """
+        options = self.options.get('bandit', self.file_name)
+        if not options['enabled']:
             return
 
-        if not McCabeChecker:
+        if not self._compiled_tree:
+            # We failed to compile the tree.
             return
 
-        McCabeChecker.max_complexity = self.options.max_complexity
+        from bandit.core.node_visitor import BanditNodeVisitor
+        from bandit.core.meta_ast import BanditMetaAst
+        from bandit.core.metrics import Metrics
+        from bandit.core.test_set import BanditTestSet
 
-        for lineno, offset, text, check in McCabeChecker(
-            self._compiled_tree, '-').run():
-                self.message(lineno, text, icon='error', category='mccabe')
+        result = BanditNodeVisitor(
+            fname=self.file_path,
+            metaast=BanditMetaAst(),
+            testset=BanditTestSet(self._bandit_config, profile=options),
+            debug=False,
+            nosec_lines=(),
+            metrics=Metrics(),
+            )
+
+        result.process(self._compiled_tree)
+
+        for issue in result.tester.results:
+            self.message(
+                issue.lineno,
+                '%s:%s %s' % (
+                    issue.test_id,
+                    issue.test,
+                    issue.text,
+                    ),
+                icon='error',
+                category='bandit',
+                )
+
+    def check_pylint(self):
+        """
+        Check using pylint.
+        """
+        options = self.options.get('pylint', self.file_name).copy()
+        if not options['enabled']:
+            return
+        del options['enabled']
+
+        if not self._compiled_tree:
+            # We failed to compile the tree.
+            return
+
+        from pylint.lint import PyLinter, fix_import_path
+        from pylint.reporters import CollectingReporter
+
+        linter = PyLinter()
+        linter.load_default_plugins()
+        linter.set_reporter(CollectingReporter())
+
+        if options['py3k']:
+            linter.python3_porting_mode()
+        del options['py3k']
+
+        rcfile = options.get('rcfile', None)
+        del options['rcfile']
+
+        if rcfile:
+            linter.read_config_file(config_file=rcfile)
+            linter.load_config_file()
+        else:
+            linter.load_configuration_from_config(options)
+
+        # PyLint does its own import and parsing, so we only pass the file
+        # name and the precompiled tree.
+        with fix_import_path(self.file_path):
+            linter.check(self.file_path)
+
+        for message in linter.reporter.messages:
+            self.message(
+                message.line,
+                '%s:%s %s' % (
+                    message.msg_id,
+                    message.symbol,
+                    message.msg,
+                    ),
+                icon='error',
+                category='pylint',
+                )
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -848,11 +1013,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
     @property
     def check_length_filter(self):
-        # The pep8 lib counts from 0.
+        # The pycodestyle lib counts from 0.
         if self.options.max_line_length:
             return self.options.max_line_length - 1
         else:
-            return pep8.MAX_LINE_LENGTH
+            return DEFAULT_MAX_LENGTH
 
     def check_ascii(self, line_no, line):
         """Check that the line is ascii."""
@@ -869,36 +1034,18 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 class JavascriptChecker(BaseChecker, AnyTextMixin):
     """Check JavaScript source code."""
 
-    HERE = os.path.dirname(__file__)
-    FULLJSLINT = os.path.join(HERE, 'contrib/fulljslint.js')
-    JSREPORTER = os.path.join(HERE, 'jsreporter.js')
-
     def check(self):
         """Check the syntax of the JavaScript code."""
-        self.check_jslint()
         self.check_closure_linter()
         self.check_text()
         self.check_windows_endlines()
 
-    def check_jslint(self):
-        """Check file using jslint."""
-        if JS is None or self.text == '' or not self.options.jslint['enabled']:
-            return
-        args = [JS, self.JSREPORTER, self.FULLJSLINT, self.file_path]
-        jslint = subprocess.Popen(
-            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        issues, errors = jslint.communicate()
-        issues = issues.strip().decode('utf-8')
-        if issues:
-            for issue in issues.splitlines():
-                line_no, char_no_, message = issue.split('::')
-                line_no = int(line_no)
-                line_no -= 1
-                self.message(line_no, message, icon='error')
-
     def check_closure_linter(self):
         """Check file using Google Closure Linter."""
-        if not self.options.closure_linter['enabled']:
+
+        options = self.options.get('closure_linter', self.file_name)
+
+        if not options['enabled']:
             return
 
         from closure_linter import runner
@@ -907,7 +1054,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
         error_handler = erroraccumulator.ErrorAccumulator()
         runner.Run(self.file_path, error_handler)
         for error in error_handler.GetErrors():
-            if error.code in self.options.closure_linter['ignore']:
+            if error.code in options['ignore']:
                 continue
             # Use a similar format as default Google Closure Linter formatter.
             # Line 12, E:0010: Missing semicolon at end of line
@@ -969,7 +1116,7 @@ class JSONChecker(BaseChecker, AnyTextMixin):
             if match:
                 try:
                     line_number = int(match.group(2))
-                except:
+                except Exception:
                     # If we can not find the line number,
                     # just fall back to default.
                     line_number = 0
@@ -1275,29 +1422,48 @@ def parse_command_line(args):
     options.do_format = command_options.do_format
     options.is_interactive = command_options.is_interactive
     options.max_line_length = command_options.max_line_length
-    options.max_complexity = command_options.max_complexity
-    options.pep8['hang_closing'] = command_options.hang_closing
+    options.mccabe['max_complexity'] = command_options.max_complexity
+    options.pycodestyle['hang_closing'] = command_options.hang_closing
 
     return (options, sources)
+
+
+def _get_all_files(dir_path):
+    """
+    Generated all the files in the dir_path tree (recursive),
+    """
+    for root, _, filenames in os.walk(dir_path):
+        for name in filenames:
+            yield os.path.join(root, name)
 
 
 def check_sources(sources, options, reporter=None):
     if reporter is None:
         reporter = Reporter(Reporter.CONSOLE)
     reporter.call_count = 0
+
     for source in sources:
         file_path = os.path.normpath(source)
-        if os.path.isdir(source) or not Language.is_editable(source):
-            continue
-        language = Language.get_language(file_path)
-        with open(file_path, 'rt') as file_:
-            text = file_.read()
-        if language is Language.DOCTEST and options.do_format:
-            formatter = DoctestReviewer(text, file_path, reporter)
-            formatter.format_and_save(options.is_interactive)
-        checker = UniversalChecker(
-            file_path, text, language, reporter, options=options)
-        checker.check()
+
+        if os.path.isdir(source):
+            paths = _get_all_files(file_path)
+        else:
+            paths = [file_path]
+
+        for file_path in paths:
+
+            if not Language.is_editable(file_path):
+                continue
+
+            language = Language.get_language(file_path)
+            with open(file_path, 'rt') as file_:
+                text = file_.read()
+            if language is Language.DOCTEST and options.do_format:
+                formatter = DoctestReviewer(text, file_path, reporter)
+                formatter.format_and_save(options.is_interactive)
+            checker = UniversalChecker(
+                file_path, text, language, reporter, options=options)
+            checker.check()
     return reporter.call_count
 
 

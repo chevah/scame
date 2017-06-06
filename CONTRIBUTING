@@ -1,0 +1,8 @@
+Contributing the Scame project
+====================================================
+
+
+Code style
+----------
+
+Running pocket-lint on itself should report no issues.
