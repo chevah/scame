@@ -1,0 +1,125 @@
+import os
+import sys
+from optparse import OptionParser
+
+from scame.formatcheck import (
+    DEFAULT_MAX_LENGTH,
+    Language,
+    Reporter,
+    PocketLintOptions,
+    UniversalChecker,
+    )
+
+
+def parse_command_line(args):
+    """
+    Return a tuple with (options, source) for the command line request.
+    """
+    usage = "usage: %prog [options] file1 file2"
+    parser = OptionParser(usage=usage)
+    parser.add_option(
+        "-v", "--verbose", action="store_true", dest="verbose",
+        help="show errors and warngings.")
+    parser.add_option(
+        "-q", "--quiet", action="store_false", dest="verbose",
+        help="Show errors only.")
+    parser.add_option(
+        "-a", "--align-closing", dest="hang_closing", action="store_false",
+        help="Align the closing bracket with the matching opening.")
+    parser.add_option(
+        "-i", "--interactive", dest="is_interactive", action="store_true",
+        help="Approve each change.")
+    parser.add_option(
+        "-m", "--max-length", dest="max_line_length", type="int",
+        help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
+    parser.add_option(
+        "--max-complexity", dest="max_complexity", type="int",
+        help="Set the max complexity (default -1 - disabled)"
+        )
+    parser.set_defaults(
+        verbose=True,
+        do_format=False,
+        hang_closing=True,
+        is_interactive=False,
+        max_line_length=DEFAULT_MAX_LENGTH,
+        max_complexity=-1,
+        )
+
+    (command_options, sources) = parser.parse_args(args=args)
+
+    # Create options based on parsed command line.
+    options = PocketLintOptions()
+    options.verbose = command_options.verbose
+    options.do_format = command_options.do_format
+    options.is_interactive = command_options.is_interactive
+    options.max_line_length = command_options.max_line_length
+    options.mccabe['max_complexity'] = command_options.max_complexity
+    options.pycodestyle['hang_closing'] = command_options.hang_closing
+
+    return (options, sources)
+
+
+def _get_all_files(dir_path):
+    """
+    Generated all the files in the dir_path tree (recursive),
+    """
+    for root, _, filenames in os.walk(dir_path):
+        for name in filenames:
+            yield os.path.join(root, name)
+
+
+def check_sources(sources, options, reporter=None):
+    """
+    Run checker on all the sources using `options` and sending results to
+    `reporter`.
+    """
+    if reporter is None:
+        reporter = Reporter(Reporter.CONSOLE)
+    reporter.call_count = 0
+
+    for source in sources:
+        file_path = os.path.normpath(source)
+
+        if os.path.isdir(source):
+            paths = _get_all_files(file_path)
+        else:
+            paths = [file_path]
+
+        for file_path in paths:
+
+            if not Language.is_editable(file_path):
+                continue
+
+            language = Language.get_language(file_path)
+            with open(file_path, 'rt') as file_:
+                text = file_.read()
+
+            checker = UniversalChecker(
+                file_path, text, language, reporter, options=options)
+            checker.check()
+
+    return reporter.call_count
+
+
+def main(args=None):
+    """
+    Execute the checker.
+    """
+    if args is None:
+        args = sys.argv[1:]
+
+    (options, sources) = parse_command_line(args=args)
+
+    if len(sources) == 0:
+        sys.stderr.write("Expected file paths.\n")
+        sys.exit(1)
+
+
+
+    reporter = Reporter(Reporter.CONSOLE)
+    reporter.error_only = not options.verbose
+    return check_sources(sources, options, reporter)
+
+
+if __name__ == "__main__":
+    main()

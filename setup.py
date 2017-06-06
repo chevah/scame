@@ -1,13 +1,10 @@
 #!/usr/bin/python
-
 from __future__ import (
     absolute_import,
     print_function,
-)
-
+    )
 
 from setuptools import find_packages, setup
-
 
 setup(
     name="scame",
@@ -17,9 +14,9 @@ setup(
     maintainer_email="adi.roiban@chevah.com",
     url="https://github.com/chevah/scame",
     packages=find_packages('.'),
-    install_requires=[
-        'pyflakes>=1.5.0',
-        'pycodestyle>=2.3.1',
-        ],
-    scripts=['scripts/pocketlint'],
+      entry_points={
+          'console_scripts': [
+              'scame = scame.__main__:main'
+          ]
+      },
     )

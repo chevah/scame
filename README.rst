@@ -18,7 +18,6 @@ It has the following goals:
 * Supports checking of multiple source types:
 
   * Python syntax and style
-  * Python doctest style
   * XML/HTML style and entities
   * CSS style
   * JavaScript syntax and style

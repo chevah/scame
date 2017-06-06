@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # Copyright (C) 2009-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
-"""Check for syntax and style problems."""
+"""
+Check for syntax and style problems.
+"""
 
 from __future__ import (
     absolute_import,
@@ -41,7 +43,6 @@ except ImportError:
 
 import logging
 import mimetypes
-from optparse import OptionParser
 import os
 import re
 import subprocess
@@ -63,19 +64,14 @@ try:
 except ImportError:
     HAS_CSSUTILS = False
 
-from pocketlint.formatdoctest import DoctestReviewer
-from pocketlint.reporter import (
+from scame.reporter import (
     css_report_handler,
     Reporter,
     )
 
 
-from pocketlint.contrib.cssccc import CSSCodingConventionChecker
-try:
-    from pyflakes.checker import Checker as PyFlakesChecker
-    PyFlakesChecker
-except ImportError:
-    from pocketlint import PyFlakesChecker
+from scame.contrib.cssccc import CSSCodingConventionChecker
+from pyflakes.checker import Checker as PyFlakesChecker
 
 try:
     import closure_linter
@@ -159,7 +155,6 @@ class Language(object):
     """Supported Language types."""
     TEXT = object()
     PYTHON = object()
-    DOCTEST = object()
     CSS = object()
     JAVASCRIPT = object()
     JSON = object()
@@ -180,7 +175,6 @@ class Language(object):
     # Sorted after extension.
     mimetypes.add_type('text/plain', '.bat')
     mimetypes.add_type('text/css', '.css')
-    mimetypes.add_type('text/x-python-doctest', '.doctest')
     mimetypes.add_type('text/html', '.html')
     mimetypes.add_type('text/plain', '.ini')
     mimetypes.add_type('application/javascript', '.js')
@@ -209,20 +203,14 @@ class Language(object):
         'text/x-go': GO,
         'text/x-log': LOG,
         'text/x-python': PYTHON,
-        'text/x-python-doctest': DOCTEST,
         'text/x-rst': RESTRUCTUREDTEXT,
         'text/x-sql': SQL,
         'text/x-twisted-application': PYTHON,
         }
-    doctest_pattern = re.compile(
-        r'^.*(doc|test|stories).*/.*\.(txt|doctest)$')
 
     @staticmethod
     def get_language(file_path):
         """Return the language for the source."""
-        # Doctests can easilly be mistyped, so it must be checked first.
-        if Language.doctest_pattern.match(file_path):
-            return Language.DOCTEST
         mime_type, encoding = mimetypes.guess_type(file_path)
         if mime_type is None:
             # This could be a very bad guess.
@@ -442,8 +430,6 @@ class UniversalChecker(BaseChecker):
         """Check the file syntax and style."""
         if self.language is Language.PYTHON:
             checker_class = PythonChecker
-        elif self.language is Language.DOCTEST:
-            checker_class = DoctestReviewer
         elif self.language is Language.CSS:
             checker_class = CSSChecker
         elif self.language in Language.XML_LIKE:
@@ -1377,110 +1363,3 @@ class GOChecker(BaseChecker, AnyTextMixin):
             self.check_trailing_whitespace(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_regex_line(line_no, line)
-
-
-def parse_command_line(args):
-    """Return a tuple with (options, source) for the command line request."""
-    usage = "usage: %prog [options] file1 file2"
-    parser = OptionParser(usage=usage)
-    parser.add_option(
-        "-v", "--verbose", action="store_true", dest="verbose",
-        help="show errors and warngings.")
-    parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose",
-        help="Show errors only.")
-    parser.add_option(
-        "-f", "--format", dest="do_format", action="store_true",
-        help="Reformat the doctest.")
-    parser.add_option(
-        "-a", "--align-closing", dest="hang_closing", action="store_false",
-        help="Align the closing bracket with the matching opening.")
-    parser.add_option(
-        "-i", "--interactive", dest="is_interactive", action="store_true",
-        help="Approve each change.")
-    parser.add_option(
-        "-m", "--max-length", dest="max_line_length", type="int",
-        help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
-    parser.add_option(
-        "--max-complexity", dest="max_complexity", type="int",
-        help="Set the max complexity (default -1 - disabled)"
-        )
-    parser.set_defaults(
-        verbose=True,
-        do_format=False,
-        hang_closing=True,
-        is_interactive=False,
-        max_line_length=DEFAULT_MAX_LENGTH,
-        max_complexity=-1,
-        )
-
-    (command_options, sources) = parser.parse_args(args=args)
-
-    # Create options based on parsed command line.
-    options = PocketLintOptions()
-    options.verbose = command_options.verbose
-    options.do_format = command_options.do_format
-    options.is_interactive = command_options.is_interactive
-    options.max_line_length = command_options.max_line_length
-    options.mccabe['max_complexity'] = command_options.max_complexity
-    options.pycodestyle['hang_closing'] = command_options.hang_closing
-
-    return (options, sources)
-
-
-def _get_all_files(dir_path):
-    """
-    Generated all the files in the dir_path tree (recursive),
-    """
-    for root, _, filenames in os.walk(dir_path):
-        for name in filenames:
-            yield os.path.join(root, name)
-
-
-def check_sources(sources, options, reporter=None):
-    if reporter is None:
-        reporter = Reporter(Reporter.CONSOLE)
-    reporter.call_count = 0
-
-    for source in sources:
-        file_path = os.path.normpath(source)
-
-        if os.path.isdir(source):
-            paths = _get_all_files(file_path)
-        else:
-            paths = [file_path]
-
-        for file_path in paths:
-
-            if not Language.is_editable(file_path):
-                continue
-
-            language = Language.get_language(file_path)
-            with open(file_path, 'rt') as file_:
-                text = file_.read()
-            if language is Language.DOCTEST and options.do_format:
-                formatter = DoctestReviewer(text, file_path, reporter)
-                formatter.format_and_save(options.is_interactive)
-            checker = UniversalChecker(
-                file_path, text, language, reporter, options=options)
-            checker.check()
-    return reporter.call_count
-
-
-def main(argv=None):
-    """Run the command line operations."""
-    if argv is None:
-        argv = sys.argv
-    (options, sources) = parse_command_line(args=argv[1:])
-
-    if len(sources) == 0:
-        sys.stderr.write("Expected file paths.\n")
-        return 1
-
-    reporter = Reporter(Reporter.CONSOLE)
-    reporter.error_only = not options.verbose
-    return check_sources(sources, options, reporter)
-
-
-if __name__ == '__main__':
-    sys.exit(main())

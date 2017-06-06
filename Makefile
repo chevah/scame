@@ -11,21 +11,21 @@ env:
 deps: env
 	# For leaderboard
 	@build/bin/pip install -Ue '.[dev]'
-	@build/bin/pip install bandit pocketlint nose
+	@build/bin/pip install bandit scame nose
 
 
 run:
-	@build/bin/pocketlint pocketlint/ README.rst release-notes.rst
+	@build/bin/scame scame/ README.rst release-notes.rst
 
 check:
 	@echo "========= pyflakes ================"
-	@build/bin/pyflakes pocketlint/
+	@build/bin/pyflakes scame/
 	@echo "========= pycodestyle ============="
-	@build/bin/pycodestyle pocketlint/
+	@build/bin/pycodestyle scame/
 	@echo "========= bandit =================="
-	#@build/bin/bandit -n 0 -f txt -r pocketlint/
+	#@build/bin/bandit -n 0 -f txt -r scame/
 	@echo "========= pylint ============="
-	@build/bin/pylint pocketlint/
+	@build/bin/pylint scame/
 
 test: run
-	@build/bin/nosetests pocketlint/
+	@build/bin/nosetests scame/

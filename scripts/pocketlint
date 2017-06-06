@@ -1,6 +1,0 @@
-#!/usr/bin/python
-
-import sys
-from pocketlint.formatcheck import main
-
-sys.exit(main(sys.argv))
