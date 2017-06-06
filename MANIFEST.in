@@ -1,6 +1,7 @@
 include AUTHORS
-include COPYING
-include HACKING
+include LICENSE
+include CONTRIBUTING.rst
 include INSTALL
-include README
-include ChangeLog
+include README.rst
+include release-notes.rst
+
