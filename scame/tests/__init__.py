@@ -10,7 +10,7 @@ from __future__ import (
 import sys
 import unittest
 
-from pocketlint.formatcheck import Reporter
+from scame.formatcheck import Reporter
 
 
 class CheckerTestCase(unittest.TestCase):

@@ -168,7 +168,6 @@ class Language(object):
     LOG = object()
     SQL = object()
     RESTRUCTUREDTEXT = object()
-    GO = object()
 
     XML_LIKE = (XML, XSLT, HTML, ZPT, ZCML, DOCBOOK)
 
@@ -200,7 +199,6 @@ class Language(object):
         'text/css': CSS,
         'text/html': HTML,
         'text/plain': TEXT,
-        'text/x-go': GO,
         'text/x-log': LOG,
         'text/x-python': PYTHON,
         'text/x-rst': RESTRUCTUREDTEXT,
@@ -303,7 +301,6 @@ class PocketLintOptions(object):
             'disable': [],
             }
 
-        self._plugins = set()
 
     def get(self, option, path=None):
         """
@@ -319,15 +316,6 @@ class PocketLintOptions(object):
     def max_line_length(self, value):
         self._max_line_length = value
         self.pycodestyle['max_line_length'] = value - 1
-
-    @property
-    def plugins(self):
-        """Return a copy of current plugins."""
-        return self._plugins.copy()
-
-    def addPlugin(self, plugin):
-        """Add `plugin`."""
-        self._plugins.add(plugin)
 
 
 class BaseChecker(object):
@@ -440,8 +428,6 @@ class UniversalChecker(BaseChecker):
             checker_class = JSONChecker
         elif self.language is Language.RESTRUCTUREDTEXT:
             checker_class = ReStructuredTextChecker
-        elif self.language is Language.GO:
-            checker_class = GOChecker
         elif self.language is Language.LOG:
             # Log files are not source, but they are often in source code
             # trees.
@@ -451,21 +437,6 @@ class UniversalChecker(BaseChecker):
         checker = checker_class(
             self.file_path, self.text, self._reporter, self.options)
         checker.check()
-
-        self.check_plugins()
-
-    def check_plugins(self):
-        """
-        Checked code with registered plugins.
-        """
-        for plugin in self.options.plugins:
-            plugin.check(
-                self.language,
-                self.file_path,
-                self.text,
-                self._reporter,
-                self.options,
-                )
 
 
 class AnyTextMixin:
@@ -1334,32 +1305,3 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
                 return False
 
         return True
-
-
-class GOChecker(BaseChecker, AnyTextMixin):
-    """Check go lang source code."""
-
-    @property
-    def check_length_filter(self):
-        # Go land standards don't have a max length; it suggests common sense.
-        if self.options.max_line_length:
-            return self.options.max_line_length - 1
-        else:
-            return 160
-
-    def check(self):
-        """Check the syntax code."""
-        if self.text == '':
-            return
-        # need to call out to go to get the report.
-        self.check_text()
-
-    def check_text(self):
-        """Call each line_method for each line in text."""
-
-        for line_no, line in enumerate(self.text.splitlines()):
-            line_no += 1
-            self.check_length(line_no, line)
-            self.check_trailing_whitespace(line_no, line)
-            self.check_conflicts(line_no, line)
-            self.check_regex_line(line_no, line)

@@ -7,7 +7,7 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.tests import CheckerTestCase
+from scame.tests import CheckerTestCase
 
 
 class ReporterTestCase(CheckerTestCase):

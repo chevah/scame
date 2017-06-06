@@ -10,12 +10,12 @@ from __future__ import (
 from tempfile import NamedTemporaryFile
 import unittest
 
-from pocketlint.formatcheck import (
+from scame.formatcheck import (
     JavascriptChecker,
     JS
 )
-from pocketlint.tests import CheckerTestCase
-from pocketlint.tests.test_text import TestAnyTextMixin
+from scame.tests import CheckerTestCase
+from scame.tests.test_text import TestAnyTextMixin
 
 try:
     import closure_linter

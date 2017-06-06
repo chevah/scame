@@ -8,7 +8,7 @@ from __future__ import (
 
 from unittest import TestCase, main as unittest_main
 
-from pocketlint.contrib.cssccc import (
+from scame.contrib.cssccc import (
     CSSCodingConventionChecker, CSSAtRule, CSSRuleSet, CSSStatementMember)
 
 

@@ -7,9 +7,9 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import XMLChecker
-from pocketlint.tests import CheckerTestCase
-from pocketlint.tests.test_text import TestAnyTextMixin
+from scame.formatcheck import XMLChecker
+from scame.tests import CheckerTestCase
+from scame.tests.test_text import TestAnyTextMixin
 
 
 good_markup = """\

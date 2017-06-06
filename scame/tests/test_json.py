@@ -8,8 +8,8 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import IS_PY3, JSONChecker
-from pocketlint.tests import CheckerTestCase
+from scame.formatcheck import IS_PY3, JSONChecker
+from scame.tests import CheckerTestCase
 
 
 class TestJSON(CheckerTestCase):

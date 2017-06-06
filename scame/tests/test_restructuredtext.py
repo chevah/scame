@@ -6,8 +6,8 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import ReStructuredTextChecker
-from pocketlint.tests import CheckerTestCase
+from scame.formatcheck import ReStructuredTextChecker
+from scame.tests import CheckerTestCase
 
 # This is a valid rst content.
 # This comment is here so that the content starts at line 11

@@ -7,13 +7,13 @@ from __future__ import (
     unicode_literals,
 )
 
-from pocketlint.formatcheck import (
+from scame.formatcheck import (
     CSSChecker,
     HAS_CSSUTILS,
     IS_PY3,
 )
-from pocketlint.tests import CheckerTestCase
-from pocketlint.tests.test_text import TestAnyTextMixin
+from scame.tests import CheckerTestCase
+from scame.tests.test_text import TestAnyTextMixin
 
 
 good_css = """\

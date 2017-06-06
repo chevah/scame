@@ -7,11 +7,11 @@ from __future__ import (
     unicode_literals,
     )
 
-from pocketlint.formatcheck import (
+from scame.formatcheck import (
     AnyTextChecker,
     get_option_parser,
     )
-from pocketlint.tests import Bunch, CheckerTestCase
+from scame.tests import Bunch, CheckerTestCase
 
 
 class TestAnyTextMixin:

@@ -3,7 +3,7 @@ Scame Static Checker
 
 Scame is a fork of pocket-lint.
 
-It continues to be a composite linter and style checker.
+It continues to be a composite linter and style checker target on Python.
 
 It has the following goals:
 
