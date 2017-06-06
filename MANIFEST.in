@@ -4,5 +4,3 @@ include HACKING
 include INSTALL
 include README
 include ChangeLog
-include pocketlint/jsreporter.js
-include pocketlint/contrib/fulljslint.js

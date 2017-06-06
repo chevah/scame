@@ -1,3 +1,10 @@
+scame-0.1.0 - 2017/06/06
+========================
+
+* Initial rename from pocket-lint
+* Add the changes from the Chevah's pocket-lint fork
+
+
 pocket-lint-0.3: The first release
 ==================================
 

@@ -15,7 +15,7 @@ deps: env
 
 
 run:
-	@build/bin/pocketlint pocketlint/
+	@build/bin/pocketlint pocketlint/ README.rst release-notes.rst
 
 check:
 	@echo "========= pyflakes ================"
