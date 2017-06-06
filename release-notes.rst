@@ -3,6 +3,13 @@ scame-0.1.0 - 2017/06/06
 
 * Initial rename from pocket-lint
 * Add the changes from the Chevah's pocket-lint fork
+* There is a dedicated `options` configuration.
+* check_sources can now do recursive checks and exclude based on regex
+* Add checker for bandit
+* Add checker for pylint
+* Remove checker for Go
+* Remove checker and formatter for Python doctests.
+* Remove jslint checker.
 
 
 pocket-lint-0.3: The first release

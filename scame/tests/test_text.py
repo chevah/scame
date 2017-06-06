@@ -124,7 +124,7 @@ class TestText(CheckerTestCase, AnyTextMixin):
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 5
-        (options, sources) = parse_command_line(['-m', '49'])
+        options = parse_command_line(['-m', '49'])
         self.create_and_check('bogus', long_line, options=options)
         self.assertEqual(
             [(1, 'Line exceeds 49 characters.')],
