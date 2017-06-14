@@ -276,7 +276,7 @@ class CSSCodingConventionChecker(object):
     icons = {
         'E': 'error',
         'I': 'info',
-    }
+        }
 
     def __init__(self, text, logger=None):
         self._text = text.splitlines(True)
@@ -292,7 +292,12 @@ class CSSCodingConventionChecker(object):
         if code in IGNORED_MESSAGES:
             return
         icon = self.icons[code[0]]
-        self._logger(line_number, code + ': ' + message, icon=icon)
+        self._logger(
+            line_number,
+            code + ': ' + message,
+            icon=icon,
+            category='cssccc',
+            )
 
     def check(self):
         '''Check all rules.'''

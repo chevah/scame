@@ -3,6 +3,7 @@ import re
 import sys
 from optparse import OptionParser
 
+from scame.__version__ import VERSION
 from scame.formatcheck import (
     DEFAULT_MAX_LENGTH,
     Language,
@@ -16,20 +17,17 @@ def parse_command_line(args):
     """
     Return the `options` based on the command line arguments.
     """
-    usage = "usage: %prog [options] file1 file2"
-    parser = OptionParser(usage=usage)
-    parser.add_option(
-        "-v", "--verbose", action="store_true", dest="verbose",
-        help="show errors and warngings.")
+    usage = "usage: %prog [options] path1 path2"
+    parser = OptionParser(
+        usage=usage,
+        version=VERSION,
+        )
     parser.add_option(
         "-q", "--quiet", action="store_false", dest="verbose",
         help="Show errors only.")
     parser.add_option(
         "-a", "--align-closing", dest="hang_closing", action="store_false",
         help="Align the closing bracket with the matching opening.")
-    parser.add_option(
-        "-i", "--interactive", dest="is_interactive", action="store_true",
-        help="Approve each change.")
     parser.add_option(
         "-m", "--max-length", dest="max_line_length", type="int",
         help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
@@ -38,10 +36,7 @@ def parse_command_line(args):
         help="Set the max complexity (default -1 - disabled)"
         )
     parser.set_defaults(
-        verbose=True,
-        do_format=False,
         hang_closing=True,
-        is_interactive=False,
         max_line_length=DEFAULT_MAX_LENGTH,
         max_complexity=-1,
         )
@@ -50,9 +45,6 @@ def parse_command_line(args):
 
     # Create options based on parsed command line.
     options = ScameOptions()
-    options.verbose = command_options.verbose
-    options.do_format = command_options.do_format
-    options.is_interactive = command_options.is_interactive
     options.max_line_length = command_options.max_line_length
     options.mccabe['max_complexity'] = command_options.max_complexity
     options.pycodestyle['hang_closing'] = command_options.hang_closing

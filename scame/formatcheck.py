@@ -247,11 +247,7 @@ class ScameOptions(object):
 
     def __init__(self):
         self._max_line_length = 0
-        self.verbose = False
 
-        # Docstring options.
-        self.do_format = False
-        self.is_interactive = False
         self.regex_line = []
 
         self.scope = {
@@ -356,15 +352,20 @@ class BaseChecker(object):
             reporter = Reporter(Reporter.CONSOLE)
         self._reporter = reporter
 
-    def message(self, line_no, message, icon=None,
-                base_dir=None, file_name=None, category=None):
-        """Report the message."""
+    def message(
+        self, line_no, message, icon=None,
+        base_dir=None, file_name=None, category=None,
+        code=None,
+            ):
+        """
+        Report the message.
+        """
         if base_dir is None:
             base_dir = self.base_dir
         if file_name is None:
             file_name = self.file_name
 
-        if self._isExceptedLine(self._lines[line_no - 1], category):
+        if self._isExceptedLine(self._lines[line_no - 1], category, code):
             return
 
         self._reporter(
@@ -375,13 +376,22 @@ class BaseChecker(object):
             category=category,
             )
 
-    def _isExceptedLine(self, line, category):
-        """Return `True` if line should be excepted."""
+    def _isExceptedLine(self, line, category, code):
+        """
+        Return `True` if line should be excepted.
+
+        Any error can be excepted using the MARKER in the line.
+        A category can be ignored using MARKER:CATEGORY
+        A code from a category can be ignored using MARKER:CATEGORY=ID1,ID
+        """
         if not line.endswith(self._IGNORE_MARKER):
+            # Not an excepted line.
             return False
 
-        if line.find(':' + self._IGNORE_MARKER) == -1:
-            # We have a generic exception
+        comment = line
+
+        if comment.find('=' + self._IGNORE_MARKER) == -1:
+            # We have a generic exception.
             return True
 
         if not category:
@@ -389,7 +399,7 @@ class BaseChecker(object):
             # a category.
             return False
 
-        if line.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
+        if commentn.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
             return False
         else:
             # We have a tagged exception
@@ -402,7 +412,7 @@ class BaseChecker(object):
     @property
     def check_length_filter(self):
         '''Default filter used by default for checking line length.'''
-        max_line_length = self.options.get('max_line_length', self.file_name)
+        max_line_length = self.options.get('max_line_length', self.file_path)
         if max_line_length:
             return max_line_length
         else:
@@ -465,25 +475,39 @@ class AnyTextMixin:
                 return
             self.message(
                 line_no, 'Line exceeds %s characters.' % max_length,
-                icon='info')
+                category='text',
+                icon='info',
+                )
 
     def check_trailing_whitespace(self, line_no, line):
         """Check for the presence of trailing whitespace in the line."""
         if line.endswith(' '):
             self.message(
-                line_no, 'Line has trailing whitespace.', icon='info')
+                line_no,
+                'Line has trailing whitespace.',
+                category='text',
+                icon='info',
+                )
 
     def check_tab(self, line_no, line):
         """Check for the presence of tabs in the line."""
         if '\t' in line:
             self.message(
-                line_no, 'Line contains a tab character.', icon='info')
+                line_no,
+                'Line contains a tab character.',
+                category='text',
+                icon='info',
+                )
 
     def check_windows_endlines(self):
         """Check that file does not contains Windows newlines."""
         if self.text.find('\r\n') != -1:
             self.message(
-                0, 'File contains Windows new lines.', icon='info')
+                0,
+                'File contains Windows new lines.',
+                category='text',
+                icon='info',
+                )
 
     def check_empty_last_line(self, total_lines):
         """Check the files ends with an one empty line.
@@ -494,7 +518,9 @@ class AnyTextMixin:
             self.message(
                 total_lines,
                 'File does not ends with an empty line.',
-                icon='info')
+                category='text',
+                icon='info',
+                )
 
     def check_regex_line(self, line_no, line):
         """
@@ -502,13 +528,14 @@ class AnyTextMixin:
 
         This can be used for custom checks.
         """
-        regex_line = self.options.get('regex_line', self.file_name)
+        regex_line = self.options.get('regex_line', self.file_path)
         for pattern, message in regex_line:
             if re.search(pattern, line):
                 self.message(
                     line_no,
                     'Line contains flagged text. %s' % (message),
                     icon='info',
+                    category='regex',
                     )
 
 
@@ -669,7 +696,12 @@ class XMLChecker(BaseChecker, AnyTextMixin):
             else:
                 error_message, location = str(error).rsplit(':')
                 error_lineno = int(location.split(',')[0].split()[1]) - offset
-            self.message(error_lineno, error_message, icon='error')
+            self.message(
+                error_lineno,
+                error_message,
+                category='xml',
+                icon='error',
+                )
         self.check_text()
         self.check_windows_endlines()
 
@@ -787,7 +819,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         if not self._compiled_tree:
             return
 
-        options = self.options.get('pyflakes', self.file_name)
+        options = self.options.get('pyflakes', self.file_path)
         if not options['enabled']:
             return
 
@@ -798,13 +830,13 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             self.message(
                 int(line_no),
                 message.strip(),
-                icon='error',
                 category='pyflakes',
+                icon='info',
                 )
 
     def check_pycodestyle(self):
         """Check style."""
-        options = self.options.get('pycodestyle', self.file_name).copy()
+        options = self.options.get('pycodestyle', self.file_path).copy()
         if not options['enabled']:
             return
 
@@ -812,14 +844,19 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
         class PyCodeStyleReport(pycodestyle.StandardReport):
             """
-            Collect all errors via pocket-lint.
+            Forward all errors to the main reporter.
             """
             def __init__(self, options, message_function):
                 super(PyCodeStyleReport, self).__init__(options)
                 self.message = message_function
 
             def error(self, line_no, offset, message, check):
-                self.message(line_no, message, icon='info')
+                self.message(
+                    line_no,
+                    message,
+                    category='pycodestyle',
+                    icon='info',
+                    )
 
         # Enabled is only used internally.
         del options['enabled']
@@ -850,7 +887,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """
         Check using McCabe.
         """
-        options = self.options.get('mccabe', self.file_name)
+        options = self.options.get('mccabe', self.file_path)
         if not options['enabled']:
             return
 
@@ -864,13 +901,13 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
         result = McCabeChecker(self._compiled_tree, '-').run()
         for lineno, offset, text, check in result:
-            self.message(lineno, text, icon='error', category='mccabe')
+            self.message(lineno, text, icon='info', category='mccabe')
 
     def check_bandit(self):
         """
         Check using bandit security linter.
         """
-        options = self.options.get('bandit', self.file_name)
+        options = self.options.get('bandit', self.file_path)
         if not options['enabled']:
             return
 
@@ -897,12 +934,12 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         for issue in result.tester.results:
             self.message(
                 issue.lineno,
-                '%s:%s %s' % (
-                    issue.test_id,
+                '%s %s' % (
                     issue.test,
                     issue.text,
                     ),
-                icon='error',
+                code=issue.test_id,
+                icon='info',
                 category='bandit',
                 )
 
@@ -910,7 +947,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         """
         Check using pylint.
         """
-        options = self.options.get('pylint', self.file_name).copy()
+        options = self.options.get('pylint', self.file_path).copy()
         if not options['enabled']:
             return
         del options['enabled']
@@ -952,7 +989,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
                     message.symbol,
                     message.msg,
                     ),
-                icon='error',
+                code=message.msg_id,
+                icon='info',
                 category='pylint',
                 )
 
@@ -975,7 +1013,11 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         pdb_call = 'pdb.' + 'set_trace'
         if pdb_call in line:
             self.message(
-                line_no, 'Line contains a call to pdb.', icon='error')
+                line_no,
+                'Line contains a call to pdb.',
+                category='python',
+                icon='error',
+                )
 
     @property
     def check_length_filter(self):
@@ -994,7 +1036,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
         except UnicodeEncodeError as error:
             self.message(
                 line_no, 'Non-ascii characer at position %s.' % error.end,
-                icon='error')
+                icon='error',
+                )
 
 
 class JavascriptChecker(BaseChecker, AnyTextMixin):
@@ -1009,7 +1052,7 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
     def check_closure_linter(self):
         """Check file using Google Closure Linter."""
 
-        options = self.options.get('closure_linter', self.file_name)
+        options = self.options.get('closure_linter', self.file_path)
 
         if not options['enabled']:
             return
@@ -1025,7 +1068,12 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
             # Use a similar format as default Google Closure Linter formatter.
             # Line 12, E:0010: Missing semicolon at end of line
             message = 'E:%04d: %s' % (error.code, error.message)
-            self.message(error.token.line_number, message, icon='error')
+            self.message(
+                error.token.line_number,
+                message,
+                category='closure',
+                icon='info',
+                )
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
@@ -1101,6 +1149,14 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             file_path, text, reporter, options)
         self.lines = self.text.splitlines()
 
+    def message(self, *args, **kwargs):
+        """
+        Called to record a checker detection.
+        """
+        # Always use the same category.
+        kwargs['category'] = 'rst'
+        super(ReStructuredTextChecker, self).message(*args, **kwargs)
+
     def check(self):
         """Check the syntax of the reStructuredText code."""
         if not self.text:
@@ -1153,13 +1209,14 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         return True
 
     def check_transition(self, line_number):
-        '''Transitions should be delimited by a single emtpy line.'''
+        '''Transitions should be delimited by a single empty line.'''
         if (self.lines[line_number - 2] == '' or
                 self.lines[line_number + 2] == ''):
             self.message(
                 line_number + 1,
                 'Transition markers should be bounded by single empty lines.',
-                icon='info')
+                icon='info',
+                )
 
     def isSectionDelimiter(self, line_number):
         '''Return true if the line is a section delimiter.'''
@@ -1250,7 +1307,8 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.message(
                 human_line_number,
                 'Section marker has wrong length.',
-                icon='error')
+                icon='error',
+                )
 
         if not self._haveGoodSpacingBeforeSection(top_marker):
             self.message(

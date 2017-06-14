@@ -1,3 +1,22 @@
+scame-0.3.1 - 2017/06/14
+========================
+
+* Fix scan_source.
+
+
+scame-0.3.0 - 2017/06/14
+========================
+
+* Add version to the command line options.
+* Fix previous bad release.
+
+
+scame-0.2.0 - 2017/06/06
+========================
+
+* In ScameOptions pass the full path, not just the file name.
+
+
 scame-0.1.0 - 2017/06/06
 ========================
 
