@@ -1,3 +1,9 @@
+scame-0.3.3 - 2017/06/14
+========================
+
+* Fix check_source with not used with command line input.
+
+
 scame-0.3.2 - 2017/06/14
 ========================
 
