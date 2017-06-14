@@ -9,13 +9,11 @@ env:
 
 
 deps: env
-	# For leaderboard
-	@build/bin/pip install -Ue '.[dev]'
-	@build/bin/pip install bandit scame nose
+	@build/bin/python -m pip install -Ue '.[dev]'
 
 
 run:
-	@build/bin/scame scame/ README.rst release-notes.rst
+	@build/bin/scame --pycodestyle scame/ README.rst release-notes.rst
 
 check:
 	@echo "========= pyflakes ================"

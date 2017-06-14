@@ -5,7 +5,7 @@
 __all__ = [
     'css_report_handler',
     'Reporter',
-]
+    ]
 
 from contextlib import contextmanager
 import logging

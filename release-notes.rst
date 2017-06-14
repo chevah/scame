@@ -1,3 +1,12 @@
+scame-0.3.2 - 2017/06/14
+========================
+
+* Add exclude option for command line.
+* Add option to enable pycodestyle checks from command line.
+* Add option to enable bandit checks from command line.
+* Add option to run only files changed since a base branch.
+
+
 scame-0.3.1 - 2017/06/14
 ========================
 

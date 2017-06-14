@@ -5,13 +5,13 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-)
+    )
 
 from scame.formatcheck import (
     CSSChecker,
     HAS_CSSUTILS,
     IS_PY3,
-)
+    )
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
