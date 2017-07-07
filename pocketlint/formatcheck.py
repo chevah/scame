@@ -460,6 +460,14 @@ class AnyTextMixin:
                     icon='info',
                     )
 
+    def check_semantic_newline(self):
+        """Check for a sentence with a ., ?, or ! with a space.
+
+        Exclude ones with with no new line and two full-stops."""
+        if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
+            self.message(
+                0, 'Line contains a sentence without a new line.', icon='info')
+
 
 class AnyTextChecker(BaseChecker, AnyTextMixin):
     """Verify the text of the document."""
@@ -799,7 +807,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line.encode('ascii')
         except UnicodeEncodeError as error:
             self.message(
-                line_no, 'Non-ascii characer at position %s.' % error.end,
+                line_no, 'Non-ascii character at position %s.' % error.end,
                 icon='error')
 
 
@@ -939,6 +947,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         for line_no, line in enumerate(self.lines):
             line_no += 1
             self.check_length(line_no, line)
+            self.check_semantic_newline(line_no, line)
             self.check_trailing_whitespace(line_no, line)
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
@@ -1010,14 +1019,14 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
     def check_section_delimiter(self, line_number):
         """Checks for section delimiter.
 
-        These checkes are designed for sections delimited by top and bottom
+        These checks are designed for sections delimited by top and bottom
         markers.
 
         =======  <- top marker
         Section  <- text_line
         =======  <- bottom marker
 
-        If the section is delimted only by bottom marker, the section text
+        If the section is delimited only by bottom marker, the section text
         is considered the top marker.
 
         Section  <- top marker, text_line
