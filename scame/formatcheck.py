@@ -461,6 +461,13 @@ class UniversalChecker(BaseChecker):
 class AnyTextMixin:
     """Common checks for many checkers."""
 
+    def check_semantic_newline(self):
+    	"""Check that there are ., ?, or ! with a space following after.
+    	Exclude those with no new line and two full-stops."""
+    	if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
+    		self.message(
+    			0, 'Line contains a sentence without a new line.', icon='info')
+
     def check_conflicts(self, line_no, line):
         """Check that there are no merge conflict markers."""
         if line.startswith('<' * 7) or line.startswith('>' * 7):
@@ -1035,7 +1042,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line.encode('ascii')
         except UnicodeEncodeError as error:
             self.message(
-                line_no, 'Non-ascii characer at position %s.' % error.end,
+                line_no, 'Non-ascii character at position %s.' % error.end,
                 icon='error',
                 )
 
@@ -1243,14 +1250,14 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
     def check_section_delimiter(self, line_number):
         """Checks for section delimiter.
 
-        These checkes are designed for sections delimited by top and bottom
+        These checks are designed for sections delimited by top and bottom
         markers.
 
         =======  <- top marker
         Section  <- text_line
         =======  <- bottom marker
 
-        If the section is delimted only by bottom marker, the section text
+        If the section is delimited only by bottom marker, the section text
         is considered the top marker.
 
         Section  <- top marker, text_line
