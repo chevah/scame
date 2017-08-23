@@ -351,7 +351,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(1, self.reporter.call_count)
 
     def test_semantic_newline_fullstop(self):
-        """When a full stop is not the last character from the line, it is
+        """When a full stop is not the last character of the line, it is
         considered a semantic newline violation and an error is reported."""
         content = (
             'Sentence. New sentence\n'
@@ -375,7 +375,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(0, self.reporter.call_count)
 
     def test_semantic_newline_questionmark(self):
-        """When a question mark is not the last character from the line, it is
+        """When a question mark is not the last character of the line, it is
         considered a semantic newline violation and an error is reported."""
         content = (
             'Sentence? New sentence\n'
@@ -399,7 +399,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(0, self.reporter.call_count)
 
     def test_semantic_newline_exclamationmark(self):
-        """When an exclamation mark is not the last character from the line, it
+        """When an exclamation mark is not the last character of the line, it
         is considered a semantic newline violation and an error is reported."""
         content = (
             'Sentence! New sentence\n'
