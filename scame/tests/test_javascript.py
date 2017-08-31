@@ -5,7 +5,7 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-)
+    )
 
 from tempfile import NamedTemporaryFile
 import unittest
@@ -13,7 +13,7 @@ import unittest
 from scame.formatcheck import (
     JavascriptChecker,
     JS
-)
+    )
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
@@ -73,9 +73,9 @@ class TestJavascript(CheckerTestCase):
         checker = JavascriptChecker(
             self.file.name, invalid_js, self.reporter)
         checker.options.closure_linter.update({
-                'enabled': True,
-                'ignore': [],
-                })
+            'enabled': True,
+            'ignore': [],
+            })
 
         checker.check()
 
@@ -91,9 +91,9 @@ class TestJavascript(CheckerTestCase):
         checker = JavascriptChecker(
             self.file.name, invalid_js, self.reporter)
         checker.options.closure_linter.update({
-                'enabled': True,
-                'ignore': [2],
-                })
+            'enabled': True,
+            'ignore': [2],
+            })
 
         checker.check()
 
@@ -105,9 +105,9 @@ class TestJavascript(CheckerTestCase):
         checker = JavascriptChecker(
             self.file.name, invalid_js, self.reporter)
         checker.options.closure_linter.update({
-                'enabled': False,
-                'ignore': [],
-                })
+            'enabled': False,
+            'ignore': [],
+            })
 
         checker.check()
 

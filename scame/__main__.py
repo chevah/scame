@@ -23,7 +23,7 @@ def parse_command_line(args):
         version=VERSION,
         )
     parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose",
+        "-q", "--quiet", action="store_true", dest="quiet",
         help="Show errors only.")
     parser.add_option(
         "-a", "--align-closing", dest="hang_closing", action="store_false",
@@ -49,6 +49,9 @@ def parse_command_line(args):
     options.mccabe['max_complexity'] = command_options.max_complexity
     options.pycodestyle['hang_closing'] = command_options.hang_closing
     options.scope['include'] = sources
+    options.verbose = not command_options.quiet
+
+    options.pycodestyle['enabled'] = True
 
     return options
 
@@ -115,12 +118,9 @@ def main(args=None):
         args = sys.argv[1:]
 
     options = parse_command_line(args=args)
-
     if len(options.scope['include']) == 0:
         sys.stderr.write("Expected file paths.\n")
         sys.exit(1)
-
-
 
     reporter = Reporter(Reporter.CONSOLE)
     reporter.error_only = not options.verbose

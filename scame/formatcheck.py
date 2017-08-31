@@ -189,7 +189,6 @@ class Language(object):
     mimetypes.add_type('text/plain', '.txt')
     mimetypes.add_type('application/x-zope-configuation', '.zcml')
 
-
     # Sorted after content type.
     mime_type_language = {
         'application/javascript': JAVASCRIPT,
@@ -248,6 +247,8 @@ class ScameOptions(object):
     def __init__(self):
         self._max_line_length = 0
 
+        self.verbose = True
+
         self.regex_line = []
 
         self.scope = {
@@ -305,7 +306,6 @@ class ScameOptions(object):
             # Ignored when rcfile is used.
             'disable': [],
             }
-
 
     def get(self, option, path=None):
         """
@@ -399,7 +399,7 @@ class BaseChecker(object):
             # a category.
             return False
 
-        if commentn.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
+        if comment.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
             return False
         else:
             # We have a tagged exception
@@ -462,11 +462,11 @@ class AnyTextMixin:
     """Common checks for many checkers."""
 
     def check_semantic_newline(self):
-    	"""Check that there are ., ?, or ! with a space following after.
-    	Exclude those with no new line and two full-stops."""
-    	if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
-    		self.message(
-    			0, 'Line contains a sentence without a new line.', icon='info')
+        """Check that there are ., ?, or ! with a space following after.
+        Exclude those with no new line and two full-stops."""
+        if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
+            self.message(
+                0, 'Line contains a sentence without a new line.', icon='info')
 
     def check_conflicts(self, line_no, line):
         """Check that there are no merge conflict markers."""

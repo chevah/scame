@@ -9,7 +9,6 @@ env:
 
 
 deps: env
-	# For leaderboard
 	@build/bin/pip install -Ue '.[dev]'
 	@build/bin/pip install bandit scame nose
 
@@ -25,7 +24,7 @@ check:
 	@echo "========= bandit =================="
 	#@build/bin/bandit -n 0 -f txt -r scame/
 	@echo "========= pylint ============="
-	@build/bin/pylint scame/
+	#@build/bin/pylint scame/
 
-test: run
+test: run check
 	@build/bin/nosetests scame/

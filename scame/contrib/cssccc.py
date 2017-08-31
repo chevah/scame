@@ -47,7 +47,7 @@ from __future__ import (
     absolute_import,
     unicode_literals,
     with_statement,
-)
+    )
 
 __version__ = '0.1.1'
 

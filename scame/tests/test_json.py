@@ -6,7 +6,7 @@ from __future__ import (
     absolute_import,
     print_function,
     unicode_literals,
-)
+    )
 
 from scame.formatcheck import IS_PY3, JSONChecker
 from scame.tests import CheckerTestCase

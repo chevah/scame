@@ -1,9 +1,16 @@
 Contributing the Scame project
-====================================================
+==============================
+
+Check the Makefile for available helpers.
 
 Create the virtalenv::
 
-    make dev
+    make deps
+
+Run the test::
+
+    make test
+
 
 Code style
 ----------
