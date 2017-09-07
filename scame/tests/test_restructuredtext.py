@@ -44,9 +44,6 @@ third section `with link<http://my.home>`_.
 | verse, and adornment-free lists.
 
 
-Newline test! No newline.
-Newline test? No newline.
-Newline test. No newline.
 Newline test has newline.
 Indeed.
 
@@ -350,6 +347,20 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
+    def test_semantic_newline_alltests_true(self):
+        """When a ., ?, or ! is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported."""
+        content = (
+            'Sentence. \n'
+            'Sentence! \n'
+            'Sentence? \n'
+            )
+        checker = ReStructuredTextChecker('bogus', content, self.reporter)
+        checker._check_semantic_newline()
+        expect = ['Check that a new sentence is created after a full stop, ! or ?.']
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
     def test_semantic_newline_fullstop(self):
         """When a full stop is not the last character of the line, it is
         considered a semantic newline violation and an error is reported."""
@@ -357,22 +368,10 @@ class TestReStructuredTextChecker(CheckerTestCase):
             'Sentence. New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
+        checker._check_semantic_newline()
         expect = ['Newline not created after a sentence.']
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
-
-    def test_semantic_newline_fullstop_true(self):
-        """When a full stop is the last character from the line and follows the
-        semantic newline rule, an error is not reported."""
-        content = (
-            'Sentence. \n'
-            'New sentence.'
-            )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
-        self.assertEqual([], self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
 
     def test_semantic_newline_questionmark(self):
         """When a question mark is not the last character of the line, it is
@@ -381,22 +380,10 @@ class TestReStructuredTextChecker(CheckerTestCase):
             'Sentence? New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
+        checker._check_semantic_newline()
         expect = [('Newline not created after a ? sentence.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
-
-    def test_semantic_newline_questionmark_true(self):
-        """When a question mark is the last character from the line and follows
-        semantic newline rule, an error is not reported."""
-        content = (
-            'Sentence? \n'
-            'New sentence\n'
-            )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
-        self.assertEqual([], self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
 
     def test_semantic_newline_exclamationmark(self):
         """When an exclamation mark is not the last character of the line, it
@@ -405,22 +392,10 @@ class TestReStructuredTextChecker(CheckerTestCase):
             'Sentence! New sentence\n'
             )
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
+        checker._check_semantic_newline()
         expect = [('Newline not created after a ! sentence.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
-
-    def test_semantic_newline_exclamationmark_true(self):
-        """When an exclamation mark is the last character from the line and
-        follows the semantic newline rule, an error is not reported."""
-        content = (
-            'Sentence! \n'
-            'New sentence\n'
-            )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker.check_semantic_newline()
-        self.assertEqual([], self.reporter.messages)
-        self.assertEqual(0, self.reporter.call_count)
 
     def test_check_section_delimiter_bad_length_both_markers(self):
         content = (
