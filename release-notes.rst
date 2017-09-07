@@ -1,4 +1,4 @@
-scame-0.3.4 - 2017/09/07
+scame-0.4.0 - 2017/09/07
 ========================
 
 * Add a semantic newline checker.
