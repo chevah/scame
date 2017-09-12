@@ -43,9 +43,14 @@ third section `with link<http://my.home>`_.
 | Line blocks are useful for addresses,
 | verse, and adornment-free lists.
 
-
 Newline test has newline.
-Indeed.
+Indeed!
+How come?
+
+We can have multiple lines,
+and list, and other things, on multiple lines.
+
+Somethines ... I think ok ...
 
 
 .. _section-permalink:
@@ -347,52 +352,66 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    def test_semantic_newline_alltests_true(self):
-        """When a ., ?, or ! is not the last character of the line, it is
-        considered a semantic newline violation and an error is reported."""
+    def test_check_semantic_newline_alltests_true(self):
+        """
+        When a ., ?, or ! is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported.
+        """
         content = (
-            'Sentence. \n'
-            'Sentence! \n'
-            'Sentence? \n'
+            'Sentence. Other\n'
+            'Sentence! More here\n'
+            'Sentence? Something...\n'
             )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker._check_semantic_newline()
-        expect = ['Check that a new sentence is created after a full stop, ! or ?.']
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [
+            'Check that a new sentence is created after a full stop, ! or ?.']
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    def test_semantic_newline_fullstop(self):
-        """When a full stop is not the last character of the line, it is
-        considered a semantic newline violation and an error is reported."""
+    def test_check_semantic_newline_fullstop(self):
+        """
+        When a full stop is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported.
+        """
         content = (
+            'First line is ok.\n'
             'Sentence. New sentence\n'
             )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker._check_semantic_newline()
-        expect = ['Newline not created after a sentence.']
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [(2, u'Sentence without a new line.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    def test_semantic_newline_questionmark(self):
+    def test_check_semantic_newline_questionmark(self):
         """When a question mark is not the last character of the line, it is
         considered a semantic newline violation and an error is reported."""
         content = (
             'Sentence? New sentence\n'
             )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker._check_semantic_newline()
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
         expect = [('Newline not created after a ? sentence.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
-    def test_semantic_newline_exclamationmark(self):
+    def test_check_semantic_newline_exclamationmark(self):
         """When an exclamation mark is not the last character of the line, it
         is considered a semantic newline violation and an error is reported."""
         content = (
             'Sentence! New sentence\n'
             )
-        checker = ReStructuredTextChecker('bogus', content, self.reporter)
-        checker._check_semantic_newline()
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
         expect = [('Newline not created after a ! sentence.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)

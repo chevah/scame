@@ -461,13 +461,6 @@ class UniversalChecker(BaseChecker):
 class AnyTextMixin:
     """Common checks for many checkers."""
 
-    def check_semantic_newline(self):
-        """Check that there are ., ?, or ! with a space following after.
-        Exclude those with no new line and two full-stops."""
-        if self.line.find(['. ', '? ', '! ']) != (['\n', '..']):
-            self.message(
-                0, 'Line contains a sentence without a new line.', icon='info')
-
     def check_conflicts(self, line_no, line):
         """Check that there are no merge conflict markers."""
         if line.startswith('<' * 7) or line.startswith('>' * 7):
@@ -1182,6 +1175,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_regex_line(line_no, line)
+            self.check_semantic_newline(line_no, line)
 
             if self.isTransition(line_no - 1):
                 self.check_transition(line_no - 1)
@@ -1189,6 +1183,16 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
                 self.check_section_delimiter(line_no - 1)
             else:
                 pass
+
+    def check_semantic_newline(self, line_no, line):
+        """
+        All lines should have semantic newlines.
+        """
+        # Any ., ?, or ! with a space following after is a bad line,
+        # as it signals the end of a sentence and anything after that
+        # should start on a separate line.
+        if '. ' in line:
+            self.message(line_no, 'Sentence without a new line.', icon='info')
 
     def isTransition(self, line_number):
         '''Return True if the current line is a line transition.'''
