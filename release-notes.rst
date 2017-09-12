@@ -46,8 +46,8 @@ Fixed rules to ensure Zope zcml and pt are recongnised as XML.
 pocket-lint-0.1: The first release
 ==================================
 
-Pocket-lint a composite linter and style checker. It has several notable
-features:
+Pocket-lint a composite linter and style checker.
+It has several notable features:
 
     * Provides a consistent report of issues raised by the subordinate
       checkers.

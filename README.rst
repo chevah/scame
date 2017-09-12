@@ -27,4 +27,5 @@ It has the following goals:
 
 * Support checking different source parts using different configurations.
 
-* Use soft dependencies on the checker. Only import it when enabled.
+* Use soft dependencies on the checker.
+  Only import it when enabled.
