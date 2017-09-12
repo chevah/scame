@@ -9,7 +9,7 @@ from __future__ import (
 
 from tempfile import NamedTemporaryFile
 
-from scame.formatcheck import ScameOptions, PythonChecker
+from scame.formatcheck import PythonChecker
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
@@ -63,7 +63,6 @@ class Test:
         a =  "okay"
 """
 
-
 ugly_style_lines_python = """\
 a = 1
 # Post comment.
@@ -98,7 +97,9 @@ class TestPyflakes(CheckerTestCase):
     def test_code_without_issues(self):
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', good_python, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
 
@@ -106,7 +107,9 @@ class TestPyflakes(CheckerTestCase):
         self.reporter.call_count = 0
         checker = PythonChecker(
             'bogus', good_python_on_windows, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
 
@@ -114,7 +117,9 @@ class TestPyflakes(CheckerTestCase):
         self.reporter.call_count = 0
         checker = PythonChecker(
             'bogus', bad_syntax_python, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         expected = [(
             2, 'Could not compile; non-default argument follows '
                'default argument: ')]
@@ -124,7 +129,9 @@ class TestPyflakes(CheckerTestCase):
     def test_code_with_very_bad_SyntaxError(self):
         checker = PythonChecker(
             'bogus', bad_syntax2_python, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         expected = [(
             2, 'Could not compile; invalid syntax: def __init__(self, val):')]
         self.assertEqual(expected, self.reporter.messages)
@@ -132,7 +139,9 @@ class TestPyflakes(CheckerTestCase):
     def test_code_with_IndentationError(self):
         checker = PythonChecker(
             'bogus', bad_indentation_python, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         expected = [
             (4, 'Could not compile; unindent does not match any '
                 'outer indentation level: b = 1')]
@@ -143,7 +152,9 @@ class TestPyflakes(CheckerTestCase):
         self.file = NamedTemporaryFile(prefix='pocketlint_', suffix='.py')
         self.write_to_file(self.file, ugly_python)
         checker = PythonChecker(self.file.name, ugly_python, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         self.assertEqual(
             [(3, "undefined name 'b'"),
              (3, "local variable 'a' is assigned to but never used")],
@@ -153,10 +164,12 @@ class TestPyflakes(CheckerTestCase):
     def test_pyflakes_ignore(self):
         pyflakes_ignore = (
             'def something():\n'
-            '    unused_variable = 1  # pyflakes:ignore\n')
+            '    unused_variable = 1  # noqa:pyflakes\n')
         self.reporter.call_count = 0
         checker = PythonChecker('bogus', pyflakes_ignore, self.reporter)
-        checker.check_flakes()
+
+        checker.check()
+
         self.assertEqual([], self.reporter.messages)
         self.assertEqual(0, self.reporter.call_count)
 
@@ -167,8 +180,9 @@ class TestPyflakes(CheckerTestCase):
             'variable = u"r\xe9sum\xe9"'
             )
         checker = PythonChecker('bogus', source, self.reporter)
+
         # This should set the correct encoding.
-        checker.check_text()
+        checker.check()
 
         checker.check_flakes()
         self.assertEqual([], self.reporter.messages)
@@ -179,24 +193,26 @@ class TestPyCodeStyle(CheckerTestCase):
     Verify pycodestyle integration.
     """
 
+    def getChecker(self, content):
+        """
+        Return a new PythonChecker which is connected to the reported.
+        """
+        checker = PythonChecker('fake/path', content, self.reporter)
+        checker.options.pycodestyle['enabled'] = True
+        return checker
+
     def test_code_without_issues(self):
-        checker = PythonChecker(
-            'file/path', good_python, self.reporter)
+        checker = self.getChecker(good_python)
+
         checker.check_pycodestyle()
+
         self.assertEqual([], self.reporter.messages)
 
-    def test_bad_syntax(self):
-        checker = PythonChecker(
-            'file/path', ugly_style_python, self.reporter)
-        checker.check_pycodestyle()
-        self.assertEqual(
-            [(4, 'E222 multiple spaces after operator')],
-            self.reporter.messages)
-
     def test_code_with_IndentationError(self):
-        checker = PythonChecker(
-            'file/path', bad_indentation_python, self.reporter)
+        checker = self.getChecker(bad_indentation_python)
+
         checker.check_pycodestyle()
+
         expected = [(
             4,
             'E901 IndentationError: '
@@ -205,53 +221,62 @@ class TestPyCodeStyle(CheckerTestCase):
         checker.check_pycodestyle()
 
     def test_code_closing_bracket(self):
-        checker = PythonChecker(
-            'file/path', hanging_style_python, self.reporter)
+        checker = self.getChecker(hanging_style_python)
         checker.options.pycodestyle['hang_closing'] = True
+
         checker.check_pycodestyle()
+
         self.assertEqual([], self.reporter.messages)
         checker.options.pycodestyle['hang_closing'] = False
+
         checker.check_pycodestyle()
+
         self.assertEqual(
             [(4, "E123 closing bracket does not match indentation of "
                  "opening bracket's line")],
             self.reporter.messages)
 
     def test_code_with_issues(self):
-        checker = PythonChecker(
-            'file/path', ugly_style_python, self.reporter)
+        checker = self.getChecker(ugly_style_python)
+
         checker.check_pycodestyle()
+
         self.assertEqual(
             [(4, 'E222 multiple spaces after operator')],
             self.reporter.messages)
 
     def test_code_with_comments(self):
-        checker = PythonChecker(
-            'file/path', ugly_style_lines_python, self.reporter)
+        checker = self.getChecker(ugly_style_lines_python)
+
         checker.check_pycodestyle()
+
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_good(self):
         long_line = '1234 56189' * 7 + '12345678' + '\n'
-        checker = PythonChecker('file/path', long_line, self.reporter)
+        checker = self.getChecker(long_line)
+
         checker.check_pycodestyle()
+
         self.assertEqual([], self.reporter.messages)
 
     def test_long_length_bad(self):
         long_line = '1234 56189' * 8 + '\n'
-        checker = PythonChecker('file/path', long_line, self.reporter)
+        checker = self.getChecker(long_line)
+
         checker.check_pycodestyle()
+
         self.assertEqual(
-            [(1, 'E501 line too long (80 > 79 characters)')],
+            [(1, 'E501 line too long (80 > 78 characters)')],
             self.reporter.messages)
 
     def test_long_length_options(self):
         long_line = '1234 56189' * 7 + '\n'
-        options = ScameOptions()
-        options.max_line_length = 60
-        checker = PythonChecker(
-            'file/path', long_line, self.reporter, options)
+        checker = self.getChecker(long_line)
+        checker.options.max_line_length = 60
+
         checker.check_pycodestyle()
+
         self.assertEqual(
             [(1, 'E501 line too long (70 > 59 characters)')],
             self.reporter.messages)
@@ -324,5 +349,5 @@ class TestText(CheckerTestCase, AnyTextMixin):
         checker = PythonChecker('bogus', utf8_python, self.reporter)
         checker.check_text()
         self.assertEqual(
-            [(1, 'Non-ascii characer at position 21.')],
+            [(1, 'Non-ascii character at position 21.')],
             self.reporter.messages)

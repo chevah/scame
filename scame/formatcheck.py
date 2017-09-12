@@ -384,13 +384,13 @@ class BaseChecker(object):
         A category can be ignored using MARKER:CATEGORY
         A code from a category can be ignored using MARKER:CATEGORY=ID1,ID
         """
-        if not line.endswith(self._IGNORE_MARKER):
+        if line.find('  # ' + self._IGNORE_MARKER) == -1:
             # Not an excepted line.
             return False
 
         comment = line
 
-        if comment.find('=' + self._IGNORE_MARKER) == -1:
+        if comment.find(':' + self._IGNORE_MARKER) == -1:
             # We have a generic exception.
             return True
 

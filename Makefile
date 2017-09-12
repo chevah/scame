@@ -27,4 +27,4 @@ check:
 	#@build/bin/pylint scame/
 
 test: run check
-	@build/bin/nosetests scame/
+	@build/bin/nosetests --with-id scame/
