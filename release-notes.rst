@@ -1,3 +1,10 @@
+scame-0.4.0 - 2017/10/29
+========================
+
+* Add command line to show progress.
+  This helps CI system to know that task is running.
+
+
 scame-0.3.3 - 2017/06/14
 ========================
 

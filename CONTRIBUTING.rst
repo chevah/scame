@@ -1,11 +1,10 @@
 Contributing the Scame project
-====================================================
+==============================
 
-Create the virtalenv::
+Check the Makefile for tips.
 
-    make dev
 
 Code style
 ----------
 
-Running pocket-lint on itself should report no issues.
+Running scame on itself should report no issues.

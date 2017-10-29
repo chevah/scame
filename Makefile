@@ -13,7 +13,7 @@ deps: env
 
 
 run:
-	@build/bin/scame --pycodestyle scame/ README.rst release-notes.rst
+	@build/bin/scame --progress --pycodestyle scame/ README.rst release-notes.rst
 
 check:
 	@echo "========= pyflakes ================"

@@ -26,6 +26,9 @@ def parse_command_line(args):
     parser.add_option(
         "-q", "--quiet", action="store_false", dest="verbose",
         help="Show errors only.")
+    parser.add_option(
+        "--progress", action="store_true", dest="progress",
+        help="Show a dot for each processed file.")
 
     parser.add_option(
         "--pycodestyle", dest="pycodestyle", action="store_true",
@@ -68,6 +71,7 @@ def parse_command_line(args):
     # Create options based on parsed command line.
     options = ScameOptions()
     options.verbose = command_options.verbose
+    options.progress = command_options.progress
     options.max_line_length = command_options.max_line_length
     options.mccabe['max_complexity'] = command_options.max_complexity
     options.bandit['enabled'] = command_options.bandit
@@ -229,6 +233,9 @@ def check_sources(options, reporter=None):
             language = Language.get_language(file_path)
             with open(file_path, 'rt') as file_:
                 text = file_.read()
+
+            if options.progress:
+                sys.stdout.write('.')
 
             checker = UniversalChecker(
                 file_path, text, language, reporter, options=options)
