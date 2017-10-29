@@ -5,7 +5,7 @@ python:
 
 # Command to install the dependencies.
 install:
-  - "pip install -e . --use-mirrors"
+  - "pip install -e ."
 
 # Command to run the tests.
 script:

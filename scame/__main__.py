@@ -236,6 +236,7 @@ def check_sources(options, reporter=None):
 
             if options.progress:
                 sys.stdout.write('.')
+                sys.stdout.flush()
 
             checker = UniversalChecker(
                 file_path, text, language, reporter, options=options)
