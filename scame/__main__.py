@@ -215,6 +215,7 @@ def check_sources(options, reporter=None):
 
         return False
 
+    count = 0
     for source in sources:
         file_path = os.path.normpath(source)
 
@@ -234,14 +235,19 @@ def check_sources(options, reporter=None):
             with open(file_path, 'rt') as file_:
                 text = file_.read()
 
+            count += 1
             if options.progress:
                 sys.stdout.write('.')
-                sys.stdout.flush()
+                if count % 72 == 0:
+                    sys.stdout.write('\n')
+                if count % 5 == 0:
+                    sys.stdout.flush()
 
             checker = UniversalChecker(
                 file_path, text, language, reporter, options=options)
             checker.check()
 
+    sys.stdout.flush()
     return reporter.call_count
 
 
