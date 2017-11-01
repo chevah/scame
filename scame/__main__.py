@@ -24,7 +24,7 @@ def parse_command_line(args):
         version=VERSION,
         )
     parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose",
+        "-q", "--quiet", action="store_true", dest="quiet",
         help="Show errors only.")
     parser.add_option(
         "--progress", action="store_true", dest="progress",
@@ -87,6 +87,9 @@ def parse_command_line(args):
         exclude.append(part)
 
     options.scope['include'] = sources
+    options.verbose = not command_options.quiet
+
+    options.pycodestyle['enabled'] = True
     options.scope['exclude'] = exclude
 
     return options
@@ -253,6 +256,8 @@ def main(args=None):
         args = sys.argv[1:]
 
     options = parse_command_line(args=args)
+    if len(options.scope['include']) == 0:
+        sys.stderr.write("Expected file paths.\n")
 
     if not options.scope['include'] and not options.diff_branch:
         sys.stderr.write("Expected file paths or branch diff reference.\n")

@@ -23,14 +23,14 @@ Text *for* first **section**.
 
 
 --------------------
-Second emtpy section
+Second empty section
 --------------------
 
 
 Third section
 ^^^^^^^^^^^^^
 
-Paragrhap for
+Paragraph for
 third section `with link<http://my.home>`_.
 
 ::
@@ -42,6 +42,15 @@ third section `with link<http://my.home>`_.
 
 | Line blocks are useful for addresses,
 | verse, and adornment-free lists.
+
+Newline test has newline.
+Indeed!
+How come?
+
+We can have multiple lines,
+and list, and other things, on multiple lines.
+
+Somethines ... I think ok ...
 
 
 .. _section-permalink:
@@ -141,7 +150,7 @@ class TestReStructuredTextChecker(CheckerTestCase):
         self.reporter.call_count = 0
         content = (
             'Some first line\n'
-            'the second and last line witout newline')
+            'the second and last line without newline')
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(
@@ -340,6 +349,70 @@ class TestReStructuredTextChecker(CheckerTestCase):
         checker = ReStructuredTextChecker('bogus', content, self.reporter)
         checker.check_section_delimiter(1)
         expect = [(2, 'Section marker has wrong length.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_semantic_newline_alltests_true(self):
+        """
+        When a ., ?, or ! is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported.
+        """
+        content = (
+            'Sentence. Other\n'
+            'Sentence! More here\n'
+            'Sentence? Something...\n'
+            )
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [
+            'Check that a new sentence is created after a full stop, ! or ?.']
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_semantic_newline_fullstop(self):
+        """
+        When a full stop is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported.
+        """
+        content = (
+            'First line is ok.\n'
+            'Sentence. New sentence\n'
+            )
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [(2, u'Sentence without a new line.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_semantic_newline_questionmark(self):
+        """When a question mark is not the last character of the line, it is
+        considered a semantic newline violation and an error is reported."""
+        content = (
+            'Sentence? New sentence\n'
+            )
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [('Newline not created after a ? sentence.')]
+        self.assertEqual(expect, self.reporter.messages)
+        self.assertEqual(1, self.reporter.call_count)
+
+    def test_check_semantic_newline_exclamationmark(self):
+        """When an exclamation mark is not the last character of the line, it
+        is considered a semantic newline violation and an error is reported."""
+        content = (
+            'Sentence! New sentence\n'
+            )
+        sut = ReStructuredTextChecker('bogus', content, self.reporter)
+
+        sut.check()
+
+        expect = [('Newline not created after a ! sentence.')]
         self.assertEqual(expect, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 

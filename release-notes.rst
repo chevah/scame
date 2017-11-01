@@ -1,3 +1,8 @@
+scame-0.4.2 - 2017/11/01
+========================
+
+* Add a semantic newline checker.
+
 scame-0.4.1 - 2017/10/29
 ========================
 
@@ -68,8 +73,8 @@ Fixed rules to ensure Zope zcml and pt are recongnised as XML.
 pocket-lint-0.1: The first release
 ==================================
 
-Pocket-lint a composite linter and style checker. It has several notable
-features:
+Pocket-lint a composite linter and style checker.
+It has several notable features:
 
     * Provides a consistent report of issues raised by the subordinate
       checkers.

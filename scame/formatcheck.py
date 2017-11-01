@@ -385,12 +385,14 @@ class BaseChecker(object):
         A category can be ignored using MARKER:CATEGORY
         A code from a category can be ignored using MARKER:CATEGORY=ID1,ID
         """
+        if line.find('  # ' + self._IGNORE_MARKER) == -1:
         if self._IGNORE_MARKER not in line:
             # Not an excepted line.
             return False
 
         comment = line
 
+        if comment.find(':' + self._IGNORE_MARKER) == -1:
         if comment.find(self._IGNORE_MARKER + ':') == -1:
             # We have a generic exception.
             return True
@@ -400,6 +402,7 @@ class BaseChecker(object):
             # a category.
             return False
 
+        if comment.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
         if comment.find('%s:%s' % (self._IGNORE_MARKER, category)) == -1:
             # Not this category.
             return False
@@ -1037,7 +1040,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line.encode('ascii')
         except UnicodeEncodeError as error:
             self.message(
-                line_no, 'Non-ascii characer at position %s.' % error.end,
+                line_no, 'Non-ascii character at position %s.' % error.end,
                 icon='error',
                 )
 
@@ -1177,6 +1180,7 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             self.check_tab(line_no, line)
             self.check_conflicts(line_no, line)
             self.check_regex_line(line_no, line)
+            self.check_semantic_newline(line_no, line)
 
             if self.isTransition(line_no - 1):
                 self.check_transition(line_no - 1)
@@ -1184,6 +1188,16 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
                 self.check_section_delimiter(line_no - 1)
             else:
                 pass
+
+    def check_semantic_newline(self, line_no, line):
+        """
+        All lines should have semantic newlines.
+        """
+        # Any ., ?, or ! with a space following after is a bad line,
+        # as it signals the end of a sentence and anything after that
+        # should start on a separate line.
+        if '. ' in line:
+            self.message(line_no, 'Sentence without a new line.', icon='info')
 
     def isTransition(self, line_number):
         '''Return True if the current line is a line transition.'''
@@ -1245,14 +1259,14 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
     def check_section_delimiter(self, line_number):
         """Checks for section delimiter.
 
-        These checkes are designed for sections delimited by top and bottom
+        These checks are designed for sections delimited by top and bottom
         markers.
 
         =======  <- top marker
         Section  <- text_line
         =======  <- bottom marker
 
-        If the section is delimted only by bottom marker, the section text
+        If the section is delimited only by bottom marker, the section text
         is considered the top marker.
 
         Section  <- top marker, text_line

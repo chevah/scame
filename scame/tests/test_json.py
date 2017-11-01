@@ -8,7 +8,7 @@ from __future__ import (
     unicode_literals,
     )
 
-from scame.formatcheck import IS_PY3, JSONChecker
+from scame.formatcheck import JSONChecker
 from scame.tests import CheckerTestCase
 
 
@@ -93,17 +93,10 @@ class TestJSON(CheckerTestCase):
         content = '{\n1: "something"}\n'
         checker = JSONChecker('bogus', content, self.reporter)
         checker.check()
-
-        if IS_PY3:
-            self.assertEqual(
-                [(2, 'Expecting property name enclosed in double quotes: '
-                     'line 2 column 1 (char 2)')],
-                self.reporter.messages)
-        else:
-            self.assertEqual(
-                [(2, 'Expecting property name: line 2 column 1 (char 2)')],
-                self.reporter.messages)
-
+        self.assertEqual(
+            [(2, 'Expecting property name enclosed in double quotes: '
+                 'line 2 column 1 (char 2)')],
+            self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
     def test_compile_error_on_multiple_line(self):

@@ -8,8 +8,8 @@ from __future__ import (
     )
 
 from scame.__main__ import parse_command_line
-from scame.formatcheck import AnyTextChecker
-from scame.tests import Bunch, CheckerTestCase
+from scame.formatcheck import AnyTextChecker, ScameOptions
+from scame.tests import CheckerTestCase
 
 
 class AnyTextMixin(object):
@@ -77,14 +77,13 @@ class AnyTextMixin(object):
         A list of regex and corresponding error messages can be passed to
         check each line.
         """
-        options = Bunch(
-            max_line_length=80,
-            hang_closing=True,
-            regex_line=[
-                ('.*marker.*', 'Explanation.'),
-                ('.*sign.*', 'Message.'),
-                ],
-            )
+        options = ScameOptions()
+        options.max_line_length = 80
+        options.pycodestyle['hang_closing'] = True
+        options.regex_line = [
+            ('.*marker.*', 'Explanation.'),
+            ('.*sign.*', 'Message.'),
+            ]
 
         self.create_and_check(
             'bogus',
@@ -171,7 +170,7 @@ class TestText(CheckerTestCase, AnyTextMixin):
     def test_single_last_line_no_newline(self):
         """An error is reported if file contains a single newline."""
         content = (
-            'the second and last line without newline')
+            '\nthe second and last line without newline')
         checker = AnyTextChecker('bogus', content, self.reporter)
         checker.check_empty_last_line(2)
         expected = [(

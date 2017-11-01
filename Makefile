@@ -9,6 +9,8 @@ env:
 
 
 deps: env
+	@build/bin/pip install -Ue '.[dev]'
+	@build/bin/pip install bandit scame nose
 	@build/bin/python -m pip install -Ue '.[dev]'
 
 
@@ -23,7 +25,7 @@ check:
 	@echo "========= bandit =================="
 	#@build/bin/bandit -n 0 -f txt -r scame/
 	@echo "========= pylint ============="
-	@build/bin/pylint scame/
+	#@build/bin/pylint scame/
 
-test: run
-	@build/bin/nosetests scame/
+test: run check
+	@build/bin/nosetests --with-id scame/
