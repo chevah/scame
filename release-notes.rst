@@ -1,7 +1,34 @@
-scame-0.4.0 - 2017/09/07
+scame-0.4.2 - 2017/11/01
 ========================
 
 * Add a semantic newline checker.
+
+scame-0.4.1 - 2017/10/29
+========================
+
+* Force flush the output on progress.
+
+  
+scame-0.4.0 - 2017/10/29
+========================
+
+* Add command line to show progress.
+  This helps CI system to know that task is running.
+
+
+scame-0.3.3 - 2017/06/14
+========================
+
+* Fix check_source with not used with command line input.
+
+
+scame-0.3.2 - 2017/06/14
+========================
+
+* Add exclude option for command line.
+* Add option to enable pycodestyle checks from command line.
+* Add option to enable bandit checks from command line.
+* Add option to run only files changed since a base branch.
 
 
 scame-0.3.1 - 2017/06/14

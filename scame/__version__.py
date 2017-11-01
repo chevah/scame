@@ -1,4 +1,5 @@
 """
 Keeps the version of the project.
 """
-VERSION = '0.4.0'
+
+VERSION = '0.4.1'

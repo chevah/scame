@@ -3,7 +3,7 @@ Contributing the Scame project
 
 Check the Makefile for available helpers.
 
-Create the virtalenv::
+Check the Makefile for tips.
 
     make deps
 
@@ -11,8 +11,7 @@ Run the test::
 
     make test
 
-
 Code style
 ----------
 
-Running pocket-lint on itself should report no issues.
+Running scame on itself should report no issues.

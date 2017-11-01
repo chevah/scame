@@ -248,6 +248,7 @@ class ScameOptions(object):
         self._max_line_length = 0
 
         self.verbose = True
+        self.diff_branch = None
 
         self.regex_line = []
 
@@ -329,7 +330,7 @@ class BaseChecker(object):
     The Decedent must provide self.file_name and self.base_dir
     """
     # Marker use to signal that errors should be ignored.
-    _IGNORE_MARKER = 'noqa'
+    _IGNORE_MARKER = '  # noqa'
     REENCODE = True
 
     def __init__(self, file_path, text, reporter=None, options=None):
@@ -385,12 +386,14 @@ class BaseChecker(object):
         A code from a category can be ignored using MARKER:CATEGORY=ID1,ID
         """
         if line.find('  # ' + self._IGNORE_MARKER) == -1:
+        if self._IGNORE_MARKER not in line:
             # Not an excepted line.
             return False
 
         comment = line
 
         if comment.find(':' + self._IGNORE_MARKER) == -1:
+        if comment.find(self._IGNORE_MARKER + ':') == -1:
             # We have a generic exception.
             return True
 
@@ -400,6 +403,8 @@ class BaseChecker(object):
             return False
 
         if comment.find('%s:%s' % (category, self._IGNORE_MARKER)) == -1:
+        if comment.find('%s:%s' % (self._IGNORE_MARKER, category)) == -1:
+            # Not this category.
             return False
         else:
             # We have a tagged exception
