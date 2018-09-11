@@ -9,4 +9,4 @@ install:
 
 # Command to run the tests.
 script:
-  - python test.py
+  - nosetests scame/

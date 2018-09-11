@@ -1,3 +1,10 @@
+scame-0.5.0 - 2018/09/11
+========================
+
+* Switch from deprecated Google Closure Linter to Chevah JS Linter.
+* Allow passing full command line arguments to chevah js linter.
+
+
 scame-0.4.2 - 2017/10/29
 ========================
 
@@ -9,7 +16,7 @@ scame-0.4.1 - 2017/10/29
 
 * Force flush the output on progress.
 
-  
+
 scame-0.4.0 - 2017/10/29
 ========================
 

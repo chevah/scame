@@ -268,12 +268,14 @@ class ScameOptions(object):
             'max_complexity': -1
             }
 
-        self.closure_linter = {
+        self.chevah_js_linter = {
             # Disabled by default, since jslint is the default linter.
             'enabled': False,
-            # List of Google Closure Errors to ignore.
+            # List of errors to ignore.
             # Ex 110 is line to long which is already provided by pocket-lint.
             'ignore': [110],
+            # Extra flags to pass to linter.
+            'flags': []
             }
 
         # See pycodestyle.StyleGuide for available options.
@@ -1047,20 +1049,23 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
 
     def check(self):
         """Check the syntax of the JavaScript code."""
-        self.check_closure_linter()
+        self.check_chevah_js_linter()
         self.check_text()
         self.check_windows_endlines()
 
-    def check_closure_linter(self):
-        """Check file using Google Closure Linter."""
+    def check_chevah_js_linter(self):
+        """Check file using Chevah JS Linter."""
 
-        options = self.options.get('closure_linter', self.file_path)
+        options = self.options.get('chevah_js_linter', self.file_path)
 
         if not options['enabled']:
             return
 
         from closure_linter import runner
         from closure_linter.common import erroraccumulator
+
+        import gflags as flags
+        flags.FLAGS(['scame-js-linter'] + options['flags'])
 
         error_handler = erroraccumulator.ErrorAccumulator()
         runner.Run(self.file_path, error_handler)
