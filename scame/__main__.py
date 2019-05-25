@@ -167,7 +167,9 @@ def _git_diff_files(ref='master'):
         sys.exit(1)
 
     for line in output.splitlines():
-        action, name = line.split('\t')
+        parts = line.split('\t')
+        action = parts[0]
+        name = parts[-1]
         action = action.lower()
         result.append((action, name))
 
