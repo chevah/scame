@@ -12,29 +12,22 @@ __all__ = [
 ]
 
 
-from io import StringIO
-from html.entities import entitydefs
-
-import _ast
 import json
 import mimetypes
 import os
 import re
 import subprocess
+from html.entities import entitydefs
+from io import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
-
-try:
-    from xml.etree.ElementTree import ParseError
-except ImportError:
-    # Python 2.6 and below.
-    ParseError = object()  # pyflakes:noqa
-
+from xml.etree.ElementTree import ParseError
 from xml.parsers import expat
-from scame.reporter import Reporter
 
-
+import _ast
 from pyflakes.checker import Checker as PyFlakesChecker
+
+from scame.reporter import Reporter
 
 
 def find_exec(names):
@@ -816,9 +809,9 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             # We failed to compile the tree.
             return
 
-        from bandit.core.node_visitor import BanditNodeVisitor
         from bandit.core.meta_ast import BanditMetaAst
         from bandit.core.metrics import Metrics
+        from bandit.core.node_visitor import BanditNodeVisitor
         from bandit.core.test_set import BanditTestSet
 
         result = BanditNodeVisitor(

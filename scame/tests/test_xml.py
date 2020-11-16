@@ -6,7 +6,6 @@ from scame.formatcheck import XMLChecker
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
-
 good_markup = """\
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <root>
