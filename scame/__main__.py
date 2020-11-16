@@ -4,14 +4,14 @@ import subprocess
 import sys
 from optparse import OptionParser
 
-from scame.__version__ import VERSION
+from scame import __version__
 from scame.formatcheck import (
     DEFAULT_MAX_LENGTH,
     Language,
     Reporter,
     ScameOptions,
     UniversalChecker,
-    )
+)
 
 
 def parse_command_line(args):
@@ -21,50 +21,70 @@ def parse_command_line(args):
     usage = "usage: %prog [options] path1 path2"
     parser = OptionParser(
         usage=usage,
-        version=VERSION,
-        )
+        version=__version__,
+    )
     parser.add_option(
-        "-q", "--quiet", action="store_false", dest="verbose",
-        help="Show errors only.")
+        "-q", "--quiet", action="store_false", dest="verbose", help="Show errors only."
+    )
     parser.add_option(
-        "--progress", action="store_true", dest="progress",
-        help="Show a dot for each processed file.")
+        "--progress",
+        action="store_true",
+        dest="progress",
+        help="Show a dot for each processed file.",
+    )
 
     parser.add_option(
-        "--pycodestyle", dest="pycodestyle", action="store_true",
-        help="Enable pycodestyle checks.")
+        "--pycodestyle",
+        dest="pycodestyle",
+        action="store_true",
+        help="Enable pycodestyle checks.",
+    )
     parser.add_option(
-        "-a", "--align-closing", dest="hang_closing", action="store_false",
-        help="Align the closing bracket with the matching opening.")
+        "-a",
+        "--align-closing",
+        dest="hang_closing",
+        action="store_false",
+        help="Align the closing bracket with the matching opening.",
+    )
 
     parser.add_option(
-        "--bandit", dest="bandit", action="store_true",
-        help="Enable bandit checks.")
+        "--bandit", dest="bandit", action="store_true", help="Enable bandit checks."
+    )
 
     parser.add_option(
-        "--diff-branch", dest="diff_branch",
-        help="Name of the branch to use as base for changed files.")
+        "--diff-branch",
+        dest="diff_branch",
+        help="Name of the branch to use as base for changed files.",
+    )
     parser.add_option(
-        "--exclude", dest="exclude",
-        help="Comma separated list of regex paths to exclude.")
+        "--exclude",
+        dest="exclude",
+        help="Comma separated list of regex paths to exclude.",
+    )
 
     parser.add_option(
-        "-m", "--max-length", dest="max_line_length", type="int",
-        help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH)
+        "-m",
+        "--max-length",
+        dest="max_line_length",
+        type="int",
+        help="Set the max line length (default %s)" % DEFAULT_MAX_LENGTH,
+    )
     parser.add_option(
-        "--max-complexity", dest="max_complexity", type="int",
-        help="Set the max complexity (default -1 - disabled)"
-        )
+        "--max-complexity",
+        dest="max_complexity",
+        type="int",
+        help="Set the max complexity (default -1 - disabled)",
+    )
     parser.set_defaults(
         verbose=True,
         hang_closing=True,
         max_line_length=DEFAULT_MAX_LENGTH,
         max_complexity=-1,
         diff_branch=None,
-        exclude='',
+        exclude="",
         pycodestyle=False,
         bandit=False,
-        )
+    )
 
     (command_options, sources) = parser.parse_args(args=args)
 
@@ -73,21 +93,21 @@ def parse_command_line(args):
     options.verbose = command_options.verbose
     options.progress = command_options.progress
     options.max_line_length = command_options.max_line_length
-    options.mccabe['max_complexity'] = command_options.max_complexity
-    options.bandit['enabled'] = command_options.bandit
-    options.pycodestyle['enabled'] = command_options.pycodestyle
-    options.pycodestyle['hang_closing'] = command_options.hang_closing
+    options.mccabe["max_complexity"] = command_options.max_complexity
+    options.bandit["enabled"] = command_options.bandit
+    options.pycodestyle["enabled"] = command_options.pycodestyle
+    options.pycodestyle["hang_closing"] = command_options.hang_closing
     options.diff_branch = command_options.diff_branch
 
     exclude = []
-    for part in command_options.exclude.split(','):
+    for part in command_options.exclude.split(","):
         part = part.strip()
         if not part:
             continue
         exclude.append(part)
 
-    options.scope['include'] = sources
-    options.scope['exclude'] = exclude
+    options.scope["include"] = sources
+    options.scope["exclude"] = exclude
 
     return options
 
@@ -103,15 +123,18 @@ def _get_all_files(dir_path):
 
 
 def _execute(
-        command, input_text=None, output=None,
-        ignore_errors=False, verbose=False,
-        extra_environment=None,
-        ):
+    command,
+    input_text=None,
+    output=None,
+    ignore_errors=False,
+    verbose=False,
+    extra_environment=None,
+):
     """
     Returns (exit_code, stdoutdata)
     """
     if verbose:
-        print('Calling: %s' % command)
+        print(("Calling: %s" % command))
 
     if output is None:
         output = subprocess.PIPE
@@ -128,11 +151,11 @@ def _execute(
             stdin=subprocess.PIPE,
             stdout=output,
             env=execute_environment,
-            )
-    except OSError, error:
+        )
+    except OSError as error:
         if error.errno == 2:
-            print('Failed to execute: %s' % ' '.join(command))
-            print('Missing command: %s' % command[0])
+            print(("Failed to execute: %s" % " ".join(command)))
+            print(("Missing command: %s" % command[0]))
             sys.exit(1)
         else:
             raise
@@ -147,27 +170,27 @@ def _execute(
     exit_code = process.returncode
     if exit_code != 0:
         if verbose:
-            print('Failed to execute %s\n%s' % (command, stderrdata))
+            print(("Failed to execute %s\n%s" % (command, stderrdata)))
         if not ignore_errors:
             sys.exit(exit_code)
 
     return (exit_code, stdoutdata)
 
 
-def _git_diff_files(ref='master'):
+def _git_diff_files(ref="master"):
     """
     Return a list of (action, filename) that have changed in
     comparison with `ref`.
     """
     result = []
-    command = ['git', 'diff', '--name-status', '%s' % (ref)]
+    command = ["git", "diff", "--name-status", "%s" % (ref)]
     exit_code, output = _execute(command)
     if exit_code != 0:
-        print('Failed to diff files.')
+        print("Failed to diff files.")
         sys.exit(1)
 
     for line in output.splitlines():
-        parts = line.split('\t')
+        parts = line.split("\t")
         action = parts[0]
         name = parts[-1]
         action = action.lower()
@@ -190,25 +213,24 @@ def check_sources(options, reporter=None):
         sources = []
         for change in _git_diff_files(ref=options.diff_branch):
             # Filter deleted changes since we can not lint then.
-            if change[0] == 'd':
+            if change[0] == "d":
                 continue
             sources.append(change[1])
     else:
         # We don't have explicit sources, so we use the one from the
         # configuration
-        sources = options.scope['include']
+        sources = options.scope["include"]
 
-    regex_exclude = [
-        re.compile(expression) for expression in options.scope['exclude']]
+    regex_exclude = [re.compile(expression) for expression in options.scope["exclude"]]
 
     def is_excepted_file(file_name):
         for expresion in regex_exclude:
             if expresion.match(file_name):
                 return True
 
-        if options.scope['include']:
+        if options.scope["include"]:
             included = False
-            for include in options.scope['include']:
+            for include in options.scope["include"]:
                 if file_name.startswith(include):
                     included = True
                     break
@@ -234,19 +256,20 @@ def check_sources(options, reporter=None):
                 continue
 
             language = Language.get_language(file_path)
-            with open(file_path, 'rt') as file_:
+            with open(file_path, "rt") as file_:
                 text = file_.read()
 
             count += 1
             if options.progress:
-                sys.stdout.write('.')
+                sys.stdout.write(".")
                 if count % 72 == 0:
-                    sys.stdout.write('\n')
+                    sys.stdout.write("\n")
                 if count % 5 == 0:
                     sys.stdout.flush()
 
             checker = UniversalChecker(
-                file_path, text, language, reporter, options=options)
+                file_path, text, language, reporter, options=options
+            )
             checker.check()
 
     sys.stdout.flush()
@@ -262,7 +285,7 @@ def main(args=None):
 
     options = parse_command_line(args=args)
 
-    if not options.scope['include'] and not options.diff_branch:
+    if not options.scope["include"] and not options.diff_branch:
         sys.stderr.write("Expected file paths or branch diff reference.\n")
         sys.exit(1)
 

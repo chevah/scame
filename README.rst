@@ -1,7 +1,13 @@
 Scame Static Checker
 ====================
 
-Scame is a fork of pocket-lint.
+Scame is a fork of pocket-lint by Curtis Hovey
+https://launchpad.net/pocket-lint
+
+This is MIT / X / Expat Licence
+
+There is now a different pocketlint on GitHub, but that is a different
+project.. and that is GPL.
 
 It continues to be a composite linter and style checker target on Python.
 

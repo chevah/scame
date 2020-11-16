@@ -1,11 +1,6 @@
 # Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
 
-from __future__ import (
-    absolute_import,
-    print_function,
-    unicode_literals,
-    )
 
 from scame.formatcheck import SQLChecker
 from scame.tests import CheckerTestCase

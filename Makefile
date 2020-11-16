@@ -19,7 +19,7 @@ check:
 	@echo "========= pyflakes ================"
 	@build/bin/pyflakes scame/
 	@echo "========= pycodestyle ============="
-	@build/bin/pycodestyle scame/
+	@build/bin/pycodestyle --ignore E501,E203,W503 scame/
 	@echo "========= bandit =================="
 	#@build/bin/bandit -n 0 -f txt -r scame/
 	@echo "========= pylint ============="
