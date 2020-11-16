@@ -45,7 +45,7 @@ jobs:
 
     - name: Scame on itself
       run: |
-        scame--align-closing --max-length=200  --pycodestyle scame/ setup.py
+        scame --align-closing --max-length=200  --pycodestyle scame/ setup.py
 
     - name: pyflakes
       run: |
