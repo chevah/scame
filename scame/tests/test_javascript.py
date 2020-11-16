@@ -1,10 +1,5 @@
 # Copyright (C) 2011-2013 - Curtis Hovey <sinzui.is at verizon.net>
 # This software is licensed under the MIT license (see the file COPYING).
-
-
-from tempfile import NamedTemporaryFile
-import unittest
-
 from scame.formatcheck import JavascriptChecker
 from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin

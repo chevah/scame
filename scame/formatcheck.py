@@ -17,7 +17,6 @@ from html.entities import entitydefs
 
 import _ast
 import json
-import logging
 import mimetypes
 import os
 import re

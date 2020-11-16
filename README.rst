@@ -28,8 +28,6 @@ It has the following goals:
   * Python files using bandit
   * Python files using pylint
   * XML/HTML style and entities
-  * CSS style
-  * JavaScript syntax and style
   * JSON data structure syntax
   * reStructured Text style
   * Plain text
@@ -40,5 +38,7 @@ It has the following goals:
 
 * You can ignore a single line for all reports using ` # noqa` marker.
 
-* You can ignore a single like for all reports from a cagetory using the
+* You can ignore a single like for all reports from a category using the
   `  # noqa:CATEGORY` marker.
+
+* For CSS and JS is better to use node.js based tools as they are the future.

@@ -5,7 +5,7 @@
 from tempfile import NamedTemporaryFile
 
 from scame.formatcheck import ScameOptions, PythonChecker
-from scame.tests import Bunch, CheckerTestCase
+from scame.tests import CheckerTestCase
 from scame.tests.test_text import AnyTextMixin
 
 

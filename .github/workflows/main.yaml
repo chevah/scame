@@ -39,9 +39,13 @@ jobs:
       run: |
         pip install .[dev]
 
-    - name: Test
+    - name: Unit test
       run: |
         nosetests scame/
+
+    - name: Scame on itself
+      run: |
+        scame--align-closing --max-length=200  --pycodestyle scame/ setup.py
 
     - name: pyflakes
       run: |
@@ -49,7 +53,7 @@ jobs:
 
     - name: Codestyle
       run: |
-        pycodestyle --ignore E501,E203,W503 scame/ setup.py
+        pycodestyle --max-line-length=200 --ignore W503 scame/ setup.py
 
     - name: Black
       run: |
