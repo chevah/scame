@@ -354,7 +354,7 @@ class TestText(CheckerTestCase, AnyTextMixin):
         self._test_encoding("# First line\n# coding=%(encoding)s\n\n")
 
     def test_code_utf8(self):
-        utf8_python = "a = 'this is utf-8 [\\u272a]'"
+        utf8_python = "a = 'this is utf-8 [\u272a]'"
         checker = PythonChecker("bogus", utf8_python, self.reporter)
         checker.encoding = "utf-8"
 
