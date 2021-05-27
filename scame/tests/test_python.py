@@ -90,7 +90,12 @@ class TestPython(CheckerTestCase):
         checker.check()
 
         expected = [
-            (2, "Could not compile; non-default argument follows " "default argument: ")
+            (
+                2,
+                "Could not compile; "
+                "non-default argument follows default argument:"
+                " def __init__(self, default='', non_default):",
+            )
         ]
         self.assertEqual(expected, self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)

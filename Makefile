@@ -27,3 +27,8 @@ check:
 
 test: run
 	@build/bin/nosetests scame/
+
+coverage:
+	@build/bin/coverage run --source=scame -m unittest discover
+	@build/bin/coverage html
+	xdg-open htmlcov/index.html
