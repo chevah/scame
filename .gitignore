@@ -1,6 +1,10 @@
 build/
+build-venv/
 dist/
 venv/
 *.egg/
 *.egg-info/
 MANIFEST
+**/__pycache__/
+.coverage
+htmlcov/
