@@ -6,7 +6,7 @@
 #
 name: UnitTest
 
-# Only run on pull requests and only for Python files.
+# Only run on pull requests.
 on:
   push:
     branches: [ master ]
