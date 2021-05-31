@@ -25,7 +25,7 @@ check:
 
 
 test: run
-	@build/bin/nosetests scame/
+	@venv/bin/nosetests scame/
 
 coverage:
 	@venv/bin/coverage run --source=scame -m unittest discover
