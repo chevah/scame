@@ -23,10 +23,7 @@ It has the following goals:
 
 * Supports checking of multiple source types:
 
-  * Python syntax and style using pycodestyle
   * Python files using pyflakes
-  * Python files using bandit
-  * Python files using pylint
   * XML/HTML style and entities
   * JSON data structure syntax
   * reStructured Text style
