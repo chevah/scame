@@ -189,7 +189,7 @@ def _git_diff_files(ref="master"):
         print("Failed to diff files.")
         sys.exit(1)
 
-    for line in output.splitlines():
+    for line in output.decode("utf-8").splitlines():
         parts = line.split("\t")
         action = parts[0]
         name = parts[-1]
