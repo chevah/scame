@@ -17,7 +17,10 @@ import mimetypes
 import os
 import re
 import subprocess
-from html.entities import entitydefs
+try:
+    from html.entities import entitydefs
+except ImportError:
+    from htmlentitydefs import entitydefs
 from io import StringIO
 from tokenize import TokenError
 from xml.etree import ElementTree
@@ -60,7 +63,8 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         self.text = text
         if self.text:
             self.text = self.text.split("\n")
-        super().__init__(tree=tree, filename=file_path)
+        super(PocketLintPyFlakesChecker, self).__init__(
+            tree=tree, filename=file_path)
 
     @property
     def file_path(self):
@@ -75,7 +79,7 @@ class PocketLintPyFlakesChecker(PyFlakesChecker):
         """Locate name. Ignore WindowsErrors."""
         if node.id == "WindowsError":
             return
-        return super().NAME(node)
+        return super(PocketLintPyFlakesChecker, self).NAME(node)
 
 
 class Language:
@@ -210,6 +214,11 @@ class ScameOptions:
             "hang_closing": False,
         }
 
+        self.rst = {
+            'enabled': True,
+            'max_line_length': DEFAULT_MAX_LENGTH,
+            }
+
         # See bandit.cli.main profile usage.
         # See bandit -h for the list of available tests.
         self.bandit = {
@@ -251,7 +260,7 @@ class ScameOptions:
         self.pycodestyle["max_line_length"] = value - 1
 
 
-class BaseChecker:
+class BaseChecker(object):
     """Common rules for checkers.
 
     The Decedent must provide self.file_name and self.base_dir
@@ -260,6 +269,9 @@ class BaseChecker:
     # Marker use to signal that errors should be ignored.
     _IGNORE_MARKER = "  # noqa"
     REENCODE = True
+    # The key inside the configuration from which to extract specific
+    # checker options.
+    CONFIG_KEY = None
 
     def __init__(self, file_path, text, reporter=None, options=None):
         self.file_path = file_path
@@ -338,7 +350,7 @@ class BaseChecker:
             # a category.
             return False
 
-        if comment.find(f"{self._IGNORE_MARKER}:{category}") == -1:
+        if comment.find("{0}:{1}".format(self._IGNORE_MARKER,category)) == -1:
             # Not this category.
             return False
         else:
@@ -352,18 +364,27 @@ class BaseChecker:
     @property
     def check_length_filter(self):
         """Default filter used by default for checking line length."""
-        max_line_length = self.options.get("max_line_length", self.file_path)
+        max_line_length = None
+        if self.CONFIG_KEY:
+            max_line_length = getattr(
+                self.options, self.CONFIG_KEY).get("max_line_length", None)
+
+        if max_line_length is None:
+            max_line_length = self.options.get(
+                "max_line_length", self.file_path)
+
         if max_line_length:
             return max_line_length
-        else:
-            return DEFAULT_MAX_LENGTH
+
+        return DEFAULT_MAX_LENGTH
 
 
 class UniversalChecker(BaseChecker):
     """Check and reformat source files."""
 
-    def __init__(self, file_path, text, language=None, reporter=None, options=None):
-        super().__init__(
+    def __init__(
+            self, file_path, text, language=None, reporter=None, options=None):
+        super(UniversalChecker, self).__init__(
             file_path=file_path,
             text=text,
             reporter=reporter,
@@ -390,7 +411,8 @@ class UniversalChecker(BaseChecker):
             return
         else:
             checker_class = AnyTextChecker
-        checker = checker_class(self.file_path, self.text, self._reporter, self.options)
+        checker = checker_class(
+            self.file_path, self.text, self._reporter, self.options)
         checker.check()
 
 
@@ -559,7 +581,11 @@ class FastParser:
             except KeyError:
                 err = expat.error(
                     "undefined entity %s: line %d, column %d"
-                    % (text, self.parser.ErrorLineNumber, self.parser.ErrorColumnNumber)
+                    % (
+                        text,
+                        self.parser.ErrorLineNumber,
+                        self.parser.ErrorColumnNumber,
+                        )
                 )
                 err.code = 11  # XML_ERROR_UNDEFINED_ENTITY
                 err.lineno = self.parser.ErrorLineNumber
@@ -668,7 +694,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
     encoding_pattern = re.compile(r"coding[:=]\s*([-\w.]+)")
 
     def __init__(self, file_path, text, reporter=None, options=None):
-        super().__init__(file_path, text, reporter, options)
+        super(PythonChecker, self).__init__(file_path, text, reporter, options)
         self.encoding = "ascii"
         # Last compiled tree.
         self._compiled_tree = None
@@ -684,8 +710,14 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
         try:
             # Compile the source code only once.
+            try:
+                source = self.text.encode(self.encoding)
+            except UnicodeDecodeError:
+                # Python 2.7 has bytes by default.
+                source = self.text
+
             self._compiled_tree = compile(
-                self.text.encode(self.encoding),
+                source,
                 self.file_path,
                 "exec",
                 _ast.PyCF_ONLY_AST,
@@ -695,7 +727,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             line_no = exc.lineno or 0
             line = exc.text or ""
             explanation = "Could not compile; %s" % exc.msg
-            message = f"{explanation}: {line.strip()}"
+            message = "{0}: {1}".format(explanation, line.strip())
             self.message(line_no, message, icon="error")
             self._compiled_tree = None
 
@@ -744,7 +776,7 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             """
 
             def __init__(self, options, message_function):
-                super().__init__(options)
+                super(PyCodeStyleReport, self).__init__(options)
                 self.message = message_function
 
             def error(self, line_no, offset, message, check):
@@ -760,7 +792,8 @@ class PythonChecker(BaseChecker, AnyTextMixin):
 
         style_options = pycodestyle.StyleGuide(**options)
         pycodestyle_options = style_options.options
-        pycodestyle_report = PyCodeStyleReport(pycodestyle_options, self.message)
+        pycodestyle_report = PyCodeStyleReport(
+            pycodestyle_options, self.message)
         try:
             pycodestyle_checker = pycodestyle.Checker(
                 filename=self.file_path,
@@ -771,11 +804,13 @@ class PythonChecker(BaseChecker, AnyTextMixin):
             pycodestyle_checker.check_all()
         except TokenError as er:
             message, location = er.args
-            self.message(location[0], message, icon="error", category="pycodestyle")
+            self.message(
+                location[0], message, icon="error", category="pycodestyle")
         except IndentationError as er:
             message, location = er.args
             message = "{}: {}".format(message, location[3].strip())
-            self.message(location[1], message, icon="error", category="pycodestyle")
+            self.message(
+                location[1], message, icon="error", category="pycodestyle")
 
     def check_complexity(self):
         """
@@ -945,9 +980,10 @@ class JavascriptChecker(BaseChecker, AnyTextMixin):
 
     def check_debugger(self, line_no, line):
         """Check the length of the line."""
-        debugger_call = "debugger;"
+        debugger_call = "debugger"
         if debugger_call in line:
-            self.message(line_no, "Line contains a call to debugger.", icon="error")
+            self.message(
+                line_no, "Line contains a call to debugger.", icon="error")
 
     def check_text(self):
         """Call each line_method for each line in text."""
@@ -1022,9 +1058,11 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         "<",
         ">",
     ]
+    CONFIG_KEY = 'rst'
 
     def __init__(self, file_path, text, reporter=None, options=None):
-        super().__init__(file_path, text, reporter, options)
+        super(ReStructuredTextChecker, self).__init__(
+            file_path, text, reporter, options)
         self.lines = self.text.splitlines()
 
     def message(self, *args, **kwargs):
@@ -1033,11 +1071,15 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         """
         # Always use the same category.
         kwargs["category"] = "rst"
-        super().message(*args, **kwargs)
+        super(ReStructuredTextChecker, self).message(*args, **kwargs)
 
     def check(self):
         """Check the syntax of the reStructuredText code."""
         if not self.text:
+            return
+
+        options = self.options.get("rst", self.file_path)
+        if not options["enabled"]:
             return
 
         self.check_lines()
@@ -1079,7 +1121,8 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
             return False
 
         emply_lines_bounded = (
-            self.lines[line_number - 1] == "" and self.lines[line_number + 1] == ""
+            self.lines[line_number - 1] == ""
+            and self.lines[line_number + 1] == ""
         )
 
         if not emply_lines_bounded:
@@ -1089,7 +1132,10 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
 
     def check_transition(self, line_number):
         """Transitions should be delimited by a single empty line."""
-        if self.lines[line_number - 2] == "" or self.lines[line_number + 2] == "":
+        if (
+            self.lines[line_number - 2] == ""
+            or self.lines[line_number + 2] == ""
+                ):
             self.message(
                 line_number + 1,
                 "Transition markers should be bounded by single empty lines.",
@@ -1108,7 +1154,10 @@ class ReStructuredTextChecker(BaseChecker, AnyTextMixin):
         if len(line) < 3:
             return False
 
-        if line[0] == line[1] == line[2] and line[0] in self.delimiter_characters:
+        if (
+            line[0] == line[1] == line[2]
+            and line[0] in self.delimiter_characters
+                ):
             if " " in line:
                 # We have a table header.
                 return False

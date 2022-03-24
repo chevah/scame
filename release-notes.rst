@@ -1,7 +1,15 @@
+scame-0.7.0 - 2022-03-24
+========================
+
+* Add back support for Python 2.7
+* Add line length configuration for RST checker.
+
+
 scame-0.6.3 - 2021-06-01
 ========================
 
 * Fix git diff parsing.
+
 
 scame-0.6.2 - 2021-06-01
 ========================
