@@ -315,7 +315,14 @@ class BaseChecker(object):
         if file_name is None:
             file_name = self.file_name
 
-        if self._isExceptedLine(self._lines[line_no - 1], category, code):
+        try:
+            line_content = self._lines[line_no - 1]
+        except IndexError:
+            # For some strange binary files the line number
+            # can be messed up.
+            line_content = ''
+
+        if self._isExceptedLine(line_content, category, code):
             return
 
         self._reporter(
