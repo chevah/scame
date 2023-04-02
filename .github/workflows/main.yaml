@@ -15,7 +15,7 @@ on:
 
 jobs:
 
-  linux:
+  py3:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -45,7 +45,7 @@ jobs:
 
     - name: Scame on itself
       run: |
-        scame --align-closing --max-length=200  --pycodestyle scame/ setup.py
+        scame --align-closing --max-length=200 --pycodestyle scame/ setup.py release-notes.rst
 
     - name: pyflakes
       run: |
@@ -58,3 +58,36 @@ jobs:
     - name: Black
       run: |
         black --check scame/ setup.py
+
+  py27:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+    - name: Show action context
+      run: |
+        echo << EOF
+        ${{ toJSON(github) }}
+        EOF
+
+    - uses: actions/checkout@v2
+
+    - name: Set Up Python 2.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 2.7
+
+    - name: Install
+      run: |
+        pip install .[dev]
+
+    - name: Unit test
+      run: |
+        nosetests scame/
+
+    - name: Scame on itself
+      run: |
+        scame --align-closing --max-length=200  --pycodestyle scame/ setup.py release-notes.rst
+

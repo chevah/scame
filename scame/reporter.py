@@ -77,7 +77,7 @@ class Reporter:
     ):
         """Print the messages to the console."""
         self._message_console_group(base_dir, file_name)
-        logger.error(f"    {line_no:>4}:{category}: {message}")
+        logger.error("    {0:>4}:{1}: {2}".format(line_no, category, message))
 
     def _message_console_group(self, base_dir, file_name):
         """Print the file name is it has not been seen yet."""

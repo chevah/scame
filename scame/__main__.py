@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import sys
+import six
 from optparse import OptionParser
 
 from scame import __version__
@@ -114,11 +115,17 @@ def parse_command_line(args):
 
 def _get_all_files(dir_path):
     """
-    Generated all the files in the dir_path tree (recursive),
+    Generated all the files in the dir_path tree (recursive).
+
+    It accepts unicode input and generated unicode output.
     """
+    if six.PY2 and os.name == 'posix':
+        dir_path = dir_path.encode('utf-8')
     for root, _, filenames in os.walk(dir_path):
         for name in filenames:
             target = os.path.join(root, name)
+            if isinstance(target, six.binary_type):
+                target = target.decode('utf-8')
             yield target
 
 

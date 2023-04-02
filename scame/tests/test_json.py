@@ -40,7 +40,8 @@ class TestJSON(CheckerTestCase):
 
         checker.check()
 
-        self.assertEqual([(1, "Line has trailing whitespace.")], self.reporter.messages)
+        self.assertEqual(
+            [(1, "Line has trailing whitespace.")], self.reporter.messages)
         self.assertEqual(1, self.reporter.call_count)
 
     def test_conflict_markups(self):
@@ -51,7 +52,8 @@ class TestJSON(CheckerTestCase):
 
         checker.check()
 
-        self.assertEqual((2, "File has conflicts."), self.reporter.messages[0])
+        self.assertEqual(
+            (2, "File has conflicts."), self.reporter.messages[0])
 
     def test_tabs(self):
         """Short test to check that tab characters are caught."""
